@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مشروع السقيا — عرض لمالك الأرض | كيانات للتطوير العقاري</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#08192E;
+  --navy-soft:#0F2942;
+  --gold:#C9A227;
+  --gold-light:#E4C766;
+  --ivory:#F7F4EC;
+  --ink:#0B1B2B;
+  --display:"Reem Kufi","Noto Kufi Arabic",serif;
+  --body:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 120 120'%3E%3Cpath d='M60 8 71 29 94 22 87 45 108 56 87 67 94 90 71 83 60 104 49 83 26 90 33 67 12 56 33 45 26 22 49 29Z' fill='none' stroke='%23C9A227' stroke-width='1.1'/%3E%3C/svg%3E");
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--body);
+  background:var(--navy);
+  color:#fff;
+  overflow:hidden;
+}
+
+/* ---------- الشريحة ---------- */
+.deck{position:relative;height:100vh;height:100dvh}
+.slide{
+  position:absolute;inset:0;
+  display:none;
+  padding:clamp(20px,4vw,56px) clamp(20px,5vw,72px) clamp(78px,10vh,104px);
+  background:var(--navy);
+}
+.slide.on{display:flex;flex-direction:column}
+.slide::before{
+  content:"";position:absolute;inset:0;
+  background-image:var(--pattern);
+  background-size:150px 150px;
+  opacity:.055;
+  pointer-events:none;
+}
+.slide.light{background:var(--ivory);color:var(--ink)}
+.slide.light::before{opacity:.09}
+
+.topline{
+  position:relative;z-index:1;
+  display:flex;justify-content:space-between;align-items:center;
+  padding-bottom:clamp(14px,2.5vh,26px);
+  border-bottom:1px solid rgba(201,162,39,.32);
+}
+.brand{font-family:var(--display);font-weight:600;font-size:clamp(15px,2.4vw,20px);color:var(--gold);letter-spacing:.5px}
+.step{font-size:clamp(11px,1.6vw,13px);color:rgba(255,255,255,.5);font-variant-numeric:tabular-nums}
+.slide.light .step{color:rgba(11,27,43,.5)}
+
+.body{
+  position:relative;z-index:1;
+  flex:1;display:flex;gap:clamp(24px,5vw,64px);
+  align-items:center;
+  padding-top:clamp(18px,3.5vh,36px);
+  min-height:0;
+}
+.col-text{flex:1 1 58%;min-width:0}
+.col-figure{
+  flex:0 0 34%;
+  border-right:1px solid rgba(201,162,39,.32);
+  padding-right:clamp(20px,3.5vw,44px);
+}
+.slide.light .col-figure{border-right-color:rgba(11,27,43,.18)}
+
+h2{
+  font-family:var(--display);
+  font-weight:600;
+  font-size:clamp(26px,4.6vw,52px);
+  line-height:1.32;
+  margin-bottom:clamp(16px,3vh,30px);
+  max-width:22ch;
+}
+.points{list-style:none;max-width:56ch}
+.points li{
+  position:relative;
+  padding-right:26px;
+  margin-bottom:clamp(11px,2vh,20px);
+  font-size:clamp(14px,2vw,19px);
+  line-height:1.85;
+  font-weight:300;
+  color:rgba(255,255,255,.88);
+}
+.slide.light .points li{color:rgba(11,27,43,.85)}
+.points li::before{
+  content:"";position:absolute;right:0;top:.85em;
+  width:12px;height:1px;background:var(--gold);
+}
+
+.figure{text-align:center}
+.fig-value{
+  font-family:var(--display);
+  font-weight:700;
+  color:var(--gold);
+  font-size:clamp(52px,10vw,110px);
+  line-height:1;
+  display:block;
+  letter-spacing:-1px;
+}
+.slide.light .fig-value{color:#9A7A15}
+.fig-unit{
+  display:block;
+  font-family:var(--display);
+  font-size:clamp(16px,2.4vw,26px);
+  color:var(--gold-light);
+  margin-top:6px;
+}
+.slide.light .fig-unit{color:#9A7A15}
+.fig-label{
+  margin-top:clamp(10px,2vh,18px);
+  font-size:clamp(12px,1.7vw,15px);
+  line-height:1.8;
+  font-weight:300;
+  color:rgba(255,255,255,.62);
+  max-width:24ch;margin-inline:auto;
+}
+.slide.light .fig-label{color:rgba(11,27,43,.6)}
+.note{
+  display:block;margin-top:8px;
+  font-size:clamp(10px,1.4vw,12px);
+  color:rgba(255,255,255,.42);
+}
+.slide.light .note{color:rgba(11,27,43,.45)}
+
+/* ---------- الغلاف والختام ---------- */
+.cover .body{flex-direction:column;justify-content:center;text-align:center;gap:0}
+.cover .wordmark{
+  font-family:var(--display);font-weight:700;
+  font-size:clamp(44px,9vw,96px);color:var(--gold);line-height:1;
+}
+.cover .tag{
+  margin-top:14px;font-size:clamp(13px,2vw,17px);font-weight:300;
+  color:rgba(255,255,255,.7);letter-spacing:2px;
+}
+.cover .rule{width:64px;height:2px;background:var(--gold);margin:clamp(22px,4vh,36px) auto}
+.cover h2{max-width:none;margin-bottom:10px}
+.cover .points{margin:clamp(18px,3vh,28px) auto 0;text-align:right;display:inline-block}
+.cover .figure{margin-top:clamp(22px,4vh,34px)}
+.cover .fig-value{font-size:clamp(40px,7vw,72px)}
+
+.contact{
+  position:relative;z-index:1;
+  margin-top:clamp(18px,3vh,28px);
+  padding-top:16px;
+  border-top:1px solid rgba(11,27,43,.18);
+  font-size:clamp(12px,1.8vw,15px);
+  line-height:2;
+  color:rgba(11,27,43,.75);
+}
+.contact strong{font-weight:600;color:var(--ink)}
+
+/* ---------- التنقل ---------- */
+.bar{
+  position:fixed;inset-inline:0;bottom:0;z-index:5;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:14px;
+  padding:12px clamp(16px,4vw,40px);
+  background:rgba(8,25,46,.92);
+  backdrop-filter:blur(8px);
+  border-top:1px solid rgba(201,162,39,.28);
+}
+.dots{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;flex:1}
+.dot{
+  width:9px;height:9px;border-radius:50%;border:0;cursor:pointer;
+  background:rgba(255,255,255,.24);padding:0;transition:background .2s,transform .2s;
+}
+.dot[aria-current="true"]{background:var(--gold);transform:scale(1.35)}
+.nav{display:flex;gap:8px;align-items:center}
+button.move,button.print{
+  font-family:var(--body);font-size:14px;font-weight:500;
+  color:var(--navy);background:var(--gold);
+  border:0;border-radius:2px;padding:9px 16px;cursor:pointer;
+  transition:background .2s;
+}
+button.move:hover,button.print:hover{background:var(--gold-light)}
+button.move[disabled]{background:rgba(255,255,255,.14);color:rgba(255,255,255,.4);cursor:default}
+.print{background:transparent;color:var(--gold);border:1px solid rgba(201,162,39,.5)}
+.counter{font-size:13px;color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums;min-width:52px;text-align:center}
+
+/* ---------- حركة واحدة عند تغيير الشريحة ---------- */
+.slide.on h2,.slide.on .points li,.slide.on .figure,.slide.on .contact{
+  animation:rise .5s ease both;
+}
+.slide.on .points li:nth-child(1){animation-delay:.06s}
+.slide.on .points li:nth-child(2){animation-delay:.12s}
+.slide.on .points li:nth-child(3){animation-delay:.18s}
+.slide.on .figure{animation-delay:.24s}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .slide.on h2,.slide.on .points li,.slide.on .figure,.slide.on .contact{animation:none}
+}
+
+/* ---------- الجوال ---------- */
+@media (max-width:760px){
+  body{overflow:auto}
+  .deck{height:auto}
+  .slide{position:static;min-height:100dvh}
+  .body{flex-direction:column;align-items:stretch;gap:26px}
+  .col-figure{
+    flex:none;border-right:0;padding-right:0;
+    border-top:1px solid rgba(201,162,39,.32);padding-top:22px;
+  }
+  .slide.light .col-figure{border-top-color:rgba(11,27,43,.18)}
+  .figure{text-align:right}
+  .fig-label{margin-inline:0}
+  .cover .points{display:block}
+}
+
+/* ---------- الطباعة / حفظ PDF ---------- */
+@media print{
+  @page{size:A4 landscape;margin:0}
+  body{overflow:visible;background:#fff}
+  .bar{display:none}
+  .deck{height:auto}
+  .slide{
+    position:static;display:flex !important;flex-direction:column;
+    height:100vh;page-break-after:always;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;
+  }
+  .slide *{animation:none !important}
+}
+</style>
+</head>
+<body>
+
+<main class="deck" id="deck">
+
+  <!-- 1 -->
+  <section class="slide cover on" data-i="1">
+    <div class="topline"><span class="brand">كيانات للتطوير العقاري</span><span class="step">عرض مشروع السقيا — المدينة المنورة</span></div>
+    <div class="body">
+      <div class="wordmark">كيانات</div>
+      <div class="tag">نبني القيمة ونطوّر المستقبل</div>
+      <div class="rule"></div>
+      <h2>من نحن ولماذا نحن</h2>
+      <ul class="points">
+        <li>مؤسسة تطوير عقاري مقرها المدينة المنورة، مرخّصة نظامياً بسجل تجاري ورخصة فال.</li>
+        <li>ندير المشروع كاملاً من الرخصة إلى تسليم آخر وحدة، دون أن تتابع أنت التفاصيل.</li>
+        <li>شبكة جاهزة من المكاتب الهندسية والمقاولين ومكاتب التسويق في المدينة وجدة.</li>
+      </ul>
+      <div class="figure">
+        <span class="fig-value">25</span>
+        <span class="fig-unit">سنة</span>
+        <p class="fig-label">خبرة متراكمة في التجارة وإدارة الأملاك</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide" data-i="2">
+    <div class="topline"><span class="brand">كيانات</span><span class="step">2 / 12</span></div>
+    <div class="body">
+      <div class="col-text">
+        <h2>أرضك اليوم مقابل أرضك بعد التطوير</h2>
+        <ul class="points">
+          <li>الأرض في وضعها الحالي لا تدرّ دخلاً، وتتحمل قيمتها فرصة ضائعة كل سنة.</li>
+          <li>بيعها أرضاً بيضاء يعطيك مبلغاً واحداً فقط، وينتهي دورك عند هذا الحد.</li>
+          <li>تطويرها يحوّل الأصل الواحد إلى وحدات متعددة قابلة للبيع أو التأجير.</li>
+        </ul>
+      </div>
+      <div class="col-figure">
+        <div class="figure">
+          <span class="fig-value">19</span>
+          <span class="fig-unit">وحدة</span>
+          <p class="fig-label">بدل قطعة أرض واحدة</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide light" data-i="3">
+    <div class="topline"><span class="brand">كيانات</span><span class="step">3 / 12</span></div>
+    <div class="body">
+      <div class="col-text">
+        <h2>الأرض والموقع</h2>
+        <ul class="points">
+          <li>قطعة أرض بمساحة 408 م² في حي السقيا بالمدينة المنورة.</li>
+          <li>داخل النطاق العمراني، وقريبة من المسجد النبوي ومناطق الزوار.</li>
+          <li>الطلب على الشقق السكنية في هذا النطاق مستمر طوال العام.</li>
+        </ul>
+      </div>
+      <div class="col-figure">
+        <div class="figure">
+          <span class="fig-value">408</span>
+          <span class="fig-unit">م²</span>
+          <p class="fig-label">المساحة المعتمدة للأرض</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide" data-i="4">
+    <div class="topline"><span class="brand">كيانات</span><span class="step">4 / 12</span></div>
+    <div class="body">
+      <div class="col-text">
+        <h2>الفكرة باختصار</h2>
+        <ul class="points">
+          <li>عمارة سكنية استثمارية تُبنى على كامل الأرض.</li>
+          <li>الوحدات تُطرح للبيع بنظام التمليك، مع إمكانية التأجير.</li>
+          <li>واجهة رئيسية واحدة والجانبان مصمتان، بما يرفع الاستغلال للمساحة.</li>
+        </ul>
+      </div>
+      <div class="col-figure">
+        <div class="figure">
+          <span class="fig-value">5</span>
+          <span class="fig-unit">أدوار سكنية</span>
+          <p class="fig-label">فوق دورين للخدمات التشغيلية</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide" data-i="5">
+    <div class="topline"><span class="brand">كيانات</span><span class="step">5 / 12</span></div>
+    <div class="body">
+      <div class="col-text">
+        <h2>كيف تتوزع الوحدات</h2>
+        <ul class="points">
+          <li>أربعة أدوار، في كل دور أربع شقق.</li>
+          <li>دور واحد يحتوي ثلاث شقق.</li>
+          <li>متوسط مساحة الوحدة قرابة 60 م²، وهي المساحة الأكثر طلباً في السوق.</li>
+        </ul>
+      </div>
+      <div class="col-figure">
+        <div class="figure">
+          <span class="fig-value">1,140</span>
+          <span class="fig-unit">م²</span>
+          <p class="fig-label">إجمالي المساحات القابلة للبيع<span class="note">محسوبة على أساس 19 وحدة × 60 م²</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide light" data-i="6">
+    <div class="topline"><span class="brand">كيانات</span><span class="step">6 / 12</span></div>
+    <div class="body">
+      <div class="col-text">
+        <h2>من يتحمّل ماذا</h2>
+        <ul class="points">
+          <li>أنت: الأرض وتكاليف التطوير والبناء.</li>
+          <li>كيانات: الإدارة والتنفيذ والتسويق والبيع بالكامل.</li>
+          <li>الأرض تبقى باسمك، ولا تنشأ لكيانات أي ملكية فيها.</li>
+        </ul>
+      </div>
+      <div class="col-figure">
+        <div class="figure">
+          <span class="fig-value">100%</span>
+          <span class="fig-unit">ملكية الأرض</span>
+          <p class="fig-label">تبقى لك من أول يوم إلى آخر يوم</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide" data-i="7">
+    <div class="topline"><span class="brand">كيانات</span><span class="step">7 / 12</span></div>
+    <div class="body">
+      <div class="col-text">
+        <h2>ماذا نتولّى عنك بالتفصيل</h2>
+        <ul class="points">
+          <li>الرخص والإجراءات الحكومية، والتعاقد مع المكتب الهندسي ومراجعة المخططات.</li>
+          <li>طرح المنافسة على المقاولين، والتفاوض، والإشراف على الجودة والجدول الزمني.</li>
+          <li>التسويق والبيع والتعاقد مع المشترين حتى الإفراغ والتسليم.</li>
+        </ul>
+      </div>
+      <div class="col-figure">
+        <div class="figure">
+          <span class="fig-value">7</span>
+          <span class="fig-unit">مسارات عمل</span>
+          <p class="fig-label">تُدار من جهة واحدة بدل تفرّقها بين عدة أطراف</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide" data-i="8">
+    <div class="topline"><span class="brand">كيانات</span><span class="step">8 / 12</span></div>
+    <div class="body">
+      <div class="col-text">
+        <h2>البيع على الخارطة وحماية أموالك</h2>
+        <ul class="points">
+          <li>استكمال متطلبات ترخيص البيع على الخارطة نظامياً قبل طرح أي وحدة.</li>
+          <li>متحصلات البيع تدخل حساب ضمان المشروع، ولا تُصرف إلا على مصروفاته.</li>
+          <li>هذا يحمي حقك وحق المشتري، ويزيد ثقة العملاء في المشروع.</li>
+        </ul>
+      </div>
+      <div class="col-figure">
+        <div class="figure">
+          <span class="fig-value">0</span>
+          <span class="fig-unit">ريال</span>
+          <p class="fig-label">يُصرف من حساب الضمان خارج مصروفات المشروع</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide" data-i="9">
+    <div class="topline"><span class="brand">كيانات</span><span class="step">9 / 12</span></div>
+    <div class="body">
+      <div class="col-text">
+        <h2>كيف نبيع الوحدات</h2>
+        <ul class="points">
+          <li>البدء بالتسويق مبكراً أثناء التنفيذ لتدوير رأس المال قبل الانتهاء.</li>
+          <li>استهداف شريحتين: المشتري الفردي، والمستثمر الراغب في شراء المبنى كاملاً.</li>
+          <li>منافذ متعددة: مكاتب تسويق متخصصة، المنصات الرقمية، وسواتر المشروع أثناء البناء.</li>
+        </ul>
+      </div>
+      <div class="col-figure">
+        <div class="figure">
+          <span class="fig-value">650,000</span>
+          <span class="fig-unit">ريال</span>
+          <p class="fig-label">سعر مستهدف للوحدة<span class="note">مؤشر سوق أولي، يُعتمد نهائياً بعد دراسة الأسعار</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide" data-i="10">
+    <div class="topline"><span class="brand">كيانات</span><span class="step">10 / 12</span></div>
+    <div class="body">
+      <div class="col-text">
+        <h2>الجدول الزمني</h2>
+        <ul class="points">
+          <li>الأولى: الرخصة واعتماد المخططات النهائية.</li>
+          <li>الثانية: التنفيذ الإنشائي، ويبدأ التسويق بالتوازي معه.</li>
+          <li>الثالثة: التشطيب والتسليم والإفراغ للمشترين.</li>
+        </ul>
+      </div>
+      <div class="col-figure">
+        <div class="figure">
+          <span class="fig-value">3</span>
+          <span class="fig-unit">مراحل</span>
+          <p class="fig-label">لكل مرحلة تاريخ بداية ونهاية مكتوب في العقد</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide" data-i="11">
+    <div class="topline"><span class="brand">كيانات</span><span class="step">11 / 12</span></div>
+    <div class="body">
+      <div class="col-text">
+        <h2>الشفافية والمتابعة</h2>
+        <ul class="points">
+          <li>تقرير دوري مكتوب يغطي: نسبة الإنجاز، والمصروف، والمبيعات، والعوائق.</li>
+          <li>كل قرار يؤثر على التكلفة أو المدة يُعرض عليك قبل تنفيذه.</li>
+          <li>عقد نظامي يوضح النطاق والالتزامات وآلية الصرف وحالات الإنهاء.</li>
+        </ul>
+      </div>
+      <div class="col-figure">
+        <div class="figure">
+          <span class="fig-value">4</span>
+          <span class="fig-unit">محاور</span>
+          <p class="fig-label">في كل تقرير أسبوعي يصلك طوال عمر المشروع</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide light" data-i="12">
+    <div class="topline"><span class="brand">كيانات</span><span class="step">12 / 12</span></div>
+    <div class="body">
+      <div class="col-text">
+        <h2>الخطوة التالية</h2>
+        <ul class="points">
+          <li>توقيع عقد التطوير بعد صدور رخصة البناء واعتماد المخططات النهائية.</li>
+          <li>تحديد المقابل المالي لكيانات: نسبة من المبيعات أو أتعاب إدارة.</li>
+          <li>بعد التوقيع مباشرة: طرح المنافسة على المقاولين وبدء التسويق المبكر.</li>
+        </ul>
+      </div>
+      <div class="col-figure">
+        <div class="figure">
+          <span class="fig-value">1</span>
+          <span class="fig-unit">قرار</span>
+          <p class="fig-label">يفصلنا عن بدء التنفيذ</p>
+        </div>
+      </div>
+    </div>
+    <div class="contact">
+      <strong>عاطف الصاعدي</strong> — كيانات للتطوير العقاري<br>
+      جوال: 0554522021 · البريد: Kyanat49@gmail.com<br>
+      سجل تجاري: 7054816462 · رخصة فال: 1100312934
+    </div>
+  </section>
+
+</main>
+
+<div class="bar">
+  <div class="nav">
+    <button class="move" id="prev">السابق</button>
+    <button class="move" id="next">التالي</button>
+    <span class="counter" id="counter">1 / 12</span>
+  </div>
+  <div class="dots" id="dots"></div>
+  <button class="print" id="printBtn">طباعة / حفظ PDF</button>
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var dotsWrap = document.getElementById('dots');
+  var counter = document.getElementById('counter');
+  var prev = document.getElementById('prev');
+  var next = document.getElementById('next');
+  var i = 0;
+
+  slides.forEach(function(s, n){
+    var b = document.createElement('button');
+    b.className = 'dot';
+    b.setAttribute('aria-label', 'الشريحة ' + (n + 1));
+    b.addEventListener('click', function(){ go(n); });
+    dotsWrap.appendChild(b);
+  });
+  var dots = Array.prototype.slice.call(dotsWrap.children);
+
+  function go(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('on', k === i); });
+    dots.forEach(function(d, k){ d.setAttribute('aria-current', k === i ? 'true' : 'false'); });
+    counter.textContent = (i + 1) + ' / ' + slides.length;
+    prev.disabled = i === 0;
+    next.disabled = i === slides.length - 1;
+    if (window.innerWidth <= 760) slides[i].scrollIntoView({behavior:'smooth', block:'start'});
+    else window.scrollTo(0, 0);
+  }
+
+  prev.addEventListener('click', function(){ go(i - 1); });
+  next.addEventListener('click', function(){ go(i + 1); });
+  document.getElementById('printBtn').addEventListener('click', function(){ window.print(); });
+
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowLeft' || e.key === 'PageDown' || e.key === ' ') { go(i + 1); e.preventDefault(); }
+    if (e.key === 'ArrowRight' || e.key === 'PageUp') { go(i - 1); e.preventDefault(); }
+    if (e.key === 'Home') go(0);
+    if (e.key === 'End') go(slides.length - 1);
+  });
+
+  var x0 = null;
+  document.addEventListener('touchstart', function(e){ x0 = e.touches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 60) go(dx < 0 ? i + 1 : i - 1);
+    x0 = null;
+  }, {passive:true});
+
+  go(0);
+})();
+</script>
+</body>
+</html>
