@@ -1,0 +1,60 @@
+/* مساعد أرشيف كيانات · بهوية كيانات (الكتلة الواحدة) */
+#kc{--kc-gold:#C8A45D;--kc-ink:#22304A;--kc-stone:#6B7480;--kc-chalk:#F7F5F0;--kc-line:#e7e1d4;font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif}
+#kc .kc-fab{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:16;display:flex;align-items:center;gap:10px;background:var(--kc-ink);color:#fff;border:0;border-radius:999px;padding:12px 18px 12px 14px;font:inherit;font-size:14px;cursor:pointer;box-shadow:0 10px 28px #22304a40}
+#kc .kc-fab b{font-weight:600}
+#kc .kc-mark{display:grid;grid-template-columns:9px 7px;grid-template-rows:9px 9px;gap:2px}
+#kc .kc-mark i{background:#c9ced6;border-radius:1px}#kc .kc-mark i:first-child{grid-row:span 2;background:var(--kc-gold)}
+#kc.on .kc-fab{display:none}
+#kc .kc-panel{position:fixed;left:16px;bottom:16px;z-index:15;width:400px;max-width:calc(100vw - 32px);height:min(640px,calc(100vh - 32px));background:var(--kc-chalk);border:1px solid var(--kc-line);border-radius:20px;box-shadow:0 20px 60px #22304a33;display:none;flex-direction:column;overflow:hidden}
+#kc.on .kc-panel{display:flex}
+#kc header{background:var(--kc-ink);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--kc-gold)}
+#kc header b{display:block;font-family:Alexandria,"IBM Plex Sans Arabic",sans-serif;font-size:16px}
+#kc header small{font-size:11.5px;color:#c9ced6}
+#kc .kc-x{background:#ffffff1a;color:#fff;border:0;border-radius:10px;width:34px;height:34px;font-size:15px;cursor:pointer}
+#kc .kc-log{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+#kc .kc-m{max-width:92%;font-size:14px;line-height:1.75;padding:10px 13px;border-radius:16px;word-wrap:break-word}
+#kc .kc-me{align-self:flex-start;background:var(--kc-ink);color:#fff;border-bottom-right-radius:4px}
+#kc .kc-bot{align-self:flex-end;background:#fff;border:1px solid var(--kc-line);border-bottom-left-radius:4px;color:var(--kc-ink);width:92%}
+#kc .kc-bot ul{padding-inline-start:18px;margin:6px 0}
+#kc .kc-mute{color:var(--kc-stone)}#kc .kc-ok{color:#2f7a52;font-weight:600}
+#kc .kc-files{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+#kc .kc-f{border:1px solid var(--kc-line);border-radius:12px;background:var(--kc-chalk);overflow:hidden}
+#kc .kc-open{display:flex;gap:10px;align-items:center;width:100%;background:none;border:0;padding:9px 10px;font:inherit;text-align:right;cursor:pointer;color:inherit}
+#kc .kc-open:hover{background:#fff}
+#kc .kc-t{flex:none;width:44px;height:36px;border-radius:8px;background:var(--kc-ink);color:#fff;display:grid;place-items:center;font-size:10.5px;font-weight:700}
+#kc .kc-open b{display:block;font-size:13.5px;font-weight:600;line-height:1.4}
+#kc .kc-open small{display:block;font-size:11.5px;color:var(--kc-stone);line-height:1.4}
+#kc .kc-acts{display:flex;gap:6px;padding:0 10px 9px;justify-content:flex-start}
+#kc .kc-acts a,#kc .kc-acts button,#kc .kc-row button,#kc .kc-chips button,#kc .kc-tasks button,#kc .kc-link{font:inherit;font-size:12px;border:1px solid var(--kc-line);background:#fff;color:var(--kc-ink);border-radius:999px;padding:4px 11px;cursor:pointer;text-decoration:none}
+#kc .kc-acts a{background:#f3e7cf;border-color:#e8d6b0}
+#kc .kc-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+#kc .kc-row button:first-child{background:var(--kc-gold);border-color:var(--kc-gold);color:var(--kc-ink);font-weight:600}
+#kc .kc-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+#kc .kc-chips small{color:var(--kc-gold);font-weight:700;margin-inline-start:3px}
+#kc .kc-tbl{overflow-x:auto;margin-top:8px;border:1px solid var(--kc-line);border-radius:10px}
+#kc table{border-collapse:collapse;width:100%;font-size:12px;min-width:420px}
+#kc th{background:var(--kc-ink);color:#fff;text-align:right;padding:6px 8px;font-weight:600;white-space:nowrap}
+#kc td{padding:6px 8px;border-top:1px solid var(--kc-line);vertical-align:top}
+#kc tr:nth-child(even) td{background:var(--kc-chalk)}
+#kc td a{color:var(--kc-ink);font-weight:600;text-decoration:underline;text-decoration-color:var(--kc-gold)}
+#kc .kc-tasks{list-style:none;padding:0!important;display:flex;flex-direction:column;gap:6px}
+#kc .kc-tasks li{background:var(--kc-chalk);border-radius:10px;padding:8px 10px;font-size:13px}
+#kc .kc-tasks li>span{background:var(--kc-gold);color:var(--kc-ink);font-size:11px;font-weight:700;border-radius:5px;padding:0 6px}
+#kc .kc-tasks small{display:block;color:var(--kc-stone);font-size:11.5px}
+#kc .kc-tasks small a{color:var(--kc-ink)}
+#kc .kc-tasks button{margin-top:5px}
+#kc .kc-link{border-style:dashed}
+#kc .kc-sug{display:flex;gap:6px;overflow-x:auto;padding:8px 12px;border-top:1px solid var(--kc-line);scrollbar-width:none}
+#kc .kc-sug::-webkit-scrollbar{display:none}
+#kc .kc-sug button{flex:none;font:inherit;font-size:12.5px;background:#fff;border:1px solid var(--kc-line);color:var(--kc-ink);border-radius:999px;padding:6px 12px;cursor:pointer}
+#kc .kc-sug button:hover{border-color:var(--kc-gold)}
+#kc .kc-in{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--kc-line)}
+#kc .kc-in input{flex:1;border:1px solid var(--kc-line);border-radius:999px;padding:11px 16px;font:inherit;font-size:16px;outline:0;background:var(--kc-chalk);min-width:0}
+#kc .kc-in input:focus{border-color:var(--kc-gold)}
+#kc .kc-in button{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:var(--kc-gold);color:var(--kc-ink);font-size:17px;cursor:pointer;transform:scaleX(-1)}
+#kc .kc-dots{display:inline-flex;gap:4px}#kc .kc-dots i{width:7px;height:7px;border-radius:50%;background:var(--kc-stone);animation:kcd 1s infinite}
+#kc .kc-dots i:nth-child(2){animation-delay:.15s}#kc .kc-dots i:nth-child(3){animation-delay:.3s}
+@keyframes kcd{0%,100%{opacity:.25}50%{opacity:1}}
+@media (max-width:560px){#kc .kc-panel{left:0;bottom:0;width:100vw;max-width:none;height:100dvh;border-radius:0;border:0}#kc .kc-fab b{font-size:13px}}
+@media print{#kc{display:none}}
+@media (max-width:560px){#kc table{min-width:0}#kc th:nth-child(3),#kc td:nth-child(3){display:none}}

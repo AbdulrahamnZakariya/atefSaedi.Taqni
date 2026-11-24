@@ -1,0 +1,47 @@
+name: تنبيهات واتساب · أرشيف كيانات
+# يبعت على واتساب: (1) ملخص يومي الساعة 8 الصبح بتوقيت السعودية
+#                 (2) تنبيه فوري لما ينضاف ملف أو مهمة أو قائمة جديدة
+on:
+  schedule:
+    - cron: "0 5 * * *"        # 05:00 UTC = 08:00 الرياض
+  push:
+    branches: [main]
+    paths: ["index.html", "data/lists.json", "data/tasks.json", "data/indexes.json"]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "daily = ملخص كامل · changes = الجديد فقط · test = رسالة تجربة"
+        default: daily
+permissions:
+  contents: write
+# تجميع: أي تغييرات ورا بعض خلال دقيقتين بتطلع برسالة وحدة
+concurrency: { group: whatsapp-digest, cancel-in-progress: true }
+jobs:
+  notify:
+    if: "!contains(github.event.head_commit.message, '[skip wa]')"
+    runs-on: ubuntu-latest
+    steps:
+      - name: انتظار تجميع التغييرات
+        if: github.event_name == 'push'
+        run: sleep 120
+      - uses: actions/checkout@v4
+        with: { ref: main }
+      - name: بناء الرسالة وإرسالها
+        env:
+          MODE: ${{ github.event_name == 'schedule' && 'daily' || github.event_name == 'push' && 'changes' || inputs.mode }}
+          SITE_URL: https://abdulrahamnzakariya.github.io/atefSaedi.Taqni/
+          WA_PHONE: ${{ secrets.WA_PHONE }}
+          CALLMEBOT_APIKEY: ${{ secrets.CALLMEBOT_APIKEY }}
+          WA_TOKEN: ${{ secrets.WA_TOKEN }}
+          WA_PHONE_ID: ${{ secrets.WA_PHONE_ID }}
+          WA_PHONE_2: ${{ secrets.WA_PHONE_2 }}
+          CALLMEBOT_APIKEY_2: ${{ secrets.CALLMEBOT_APIKEY_2 }}
+        run: python3 .github/scripts/digest.py
+      - name: حفظ حالة آخر إرسال
+        run: |
+          git config user.name "kayanat-bot"; git config user.email "kayanat-bot@users.noreply.github.com"
+          [ -f data/digest-state.json ] || exit 0
+          git add data/digest-state.json
+          git diff --cached --quiet && exit 0
+          git commit -m "حالة تنبيهات واتساب [skip wa]"
+          git pull --rebase origin main && git push

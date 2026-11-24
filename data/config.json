@@ -1,0 +1,4 @@
+{
+  "workerUrl": "",
+  "note": "بعد نشر worker/kayanat-worker.js على Cloudflare، حط رابطه هون (مثال: https://kayanat.your-name.workers.dev) وبيشتغل الوضع الذكي والمزامنة."
+}

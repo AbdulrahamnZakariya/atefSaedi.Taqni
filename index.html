@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>أرشيف كيانات · أ. عاطف الصاعدي</title>
+<link rel="icon" type="image/svg+xml" href="assets/brand/kayanat-mark.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f6f3ec;--card:#fff;--ink:#1b2430;--mute:#6b7280;--line:#e7e1d4;--navy:#16263b;--gold:#b08d4a;--gold2:#e9dcc0;--red:#b4433a}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -165,7 +166,7 @@ function route(){
  else h=home();
  $('#app').innerHTML=h;window.scrollTo(0,0);
 }
-function openV(id){const f=DATA.files.find(x=>x.id===id);const [c]=typeOf(f);const u=enc(f.path);
+function openV(id){const f=DATA.files.find(x=>x.id===id);if(!f||(f.section==='priv'&&!unlocked))return;const [c]=typeOf(f);const u=enc(f.path);
  $('#vt').textContent=f.title;$('#vo').href=u;$('#vd').href=u;const vp=$('#vp');if(f.pdf){vp.style.display='';vp.href=enc(f.pdf);vp.textContent='نسخة PDF';vp.setAttribute('download','')}else if(c==='pdf'){vp.style.display='';vp.href=u;vp.textContent='PDF';vp.removeAttribute('download')}else{vp.style.display='none'}
  $('#vb').innerHTML=c==='pdf'?`<iframe src="${u}"></iframe>`:c==='img'?`<img src="${u}">`:c==='vid'?`<video src="${u}" controls></video>`:c==='aud'?`<audio src="${u}" controls></audio>`:`<a href="${u}" style="color:#fff">فتح الملف</a>`;
  $('#vm').textContent=['رقم '+f.id,secName(f.section),f.sub,f.project,f.party,f.date,f.note].filter(Boolean).join(' · ');
@@ -174,5 +175,8 @@ function closeV(){$('#viewer').classList.remove('on');$('#vb').innerHTML=''}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeV()});
 $('#q').addEventListener('input',route);window.addEventListener('hashchange',()=>{$('#q').value='';route()});route();
 </script>
+<!-- مساعد الأرشيف (شات بوت) · لا تحذف هالسطرين -->
+<link rel="stylesheet" href="assets/chat.css">
+<script src="assets/chat.js" defer></script>
 </body>
 </html>
