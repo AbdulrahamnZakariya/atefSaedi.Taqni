@@ -58,3 +58,9 @@
 @media (max-width:560px){#kc .kc-panel{left:0;bottom:0;width:100vw;max-width:none;height:100dvh;border-radius:0;border:0}#kc .kc-fab b{font-size:13px}}
 @media print{#kc{display:none}}
 @media (max-width:560px){#kc table{min-width:0}#kc th:nth-child(3),#kc td:nth-child(3){display:none}}
+/* الأوامر الصوتية */
+#kc .kc-mic{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--kc-line);background:#fff;color:var(--kc-ink);display:grid;place-items:center;cursor:pointer;transition:background .2s}
+#kc .kc-mic:hover{border-color:var(--kc-gold)}
+#kc.kc-listening .kc-mic{background:#B4433A;border-color:#B4433A;color:#fff;animation:kcmic 1.2s infinite}
+#kc.kc-listening .kc-in input{border-color:#B4433A}
+@keyframes kcmic{0%{box-shadow:0 0 0 0 #b4433a66}100%{box-shadow:0 0 0 12px #b4433a00}}

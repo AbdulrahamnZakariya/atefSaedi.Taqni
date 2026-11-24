@@ -84,30 +84,32 @@
     <section class="kc-panel" role="dialog" aria-label="مساعد أرشيف كيانات"><header><div><b>مساعد الأرشيف</b><small id="kc-mode">جاري التحميل…</small></div><button class="kc-x" aria-label="إغلاق">✕</button></header>
     <div class="kc-log" aria-live="polite"></div>
     <div class="kc-sug"></div>
-    <form class="kc-in"><input type="text" placeholder="مثلاً: اعرض صك السقيا" autocomplete="off" enterkeyhint="send"><button aria-label="إرسال">➤</button></form></section>`;
+    <form class="kc-in"><button type="button" class="kc-mic" aria-label="أمر صوتي" title="اضغط واحكي"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button><input type="text" placeholder="اكتب أو اضغط المايك واحكي" autocomplete="off" enterkeyhint="send"><button aria-label="إرسال">➤</button></form></section>`;
     document.body.appendChild(root);
     log = root.querySelector('.kc-log'); input = root.querySelector('input');
     root.querySelector('.kc-fab').onclick = () => toggle(true);
     root.querySelector('.kc-x').onclick = () => toggle(false);
     root.querySelector('form').onsubmit = e => { e.preventDefault(); const v = input.value.trim(); if (!v) return; input.value = ''; send(v); };
     root.addEventListener('click', onAction);
+    setupVoice();
     setSug(['شو الجديد؟', 'اعرض صك السقيا', 'اعمل فهرس للجصة', 'قوائمي', 'المهام', 'شو بتقدر تعمل؟']);
   }
   function toggle(on) { root.classList.toggle('on', on); if (on) { if (!log.children.length) greet(); setTimeout(() => input.focus(), 50); } }
   function setSug(a) { root.querySelector('.kc-sug').innerHTML = a.map(x => `<button data-say="${esc(x)}">${esc(x)}</button>`).join(''); }
   function updateMode() { const m = root && root.querySelector('#kc-mode'); if (m) m.textContent = S.config.workerUrl ? 'الوضع الذكي · Claude' : 'يشتغل على الأرشيف مباشرة'; }
   function me(t) { const d = document.createElement('div'); d.className = 'kc-m kc-me'; d.textContent = t; log.appendChild(d); scroll(); }
-  function bot(html, files, raw) { const d = document.createElement('div'); d.className = 'kc-m kc-bot'; d.innerHTML = html + (files && files.length ? cards(files) : ''); log.appendChild(d); scroll(); return d; }
+  function bot(html, files, raw) { const d = document.createElement('div'); d.className = 'kc-m kc-bot'; d.innerHTML = html + (files && files.length ? cards(files) : ''); log.appendChild(d); scroll(); if (!/kc-dots/.test(html)) say(html); return d; }
   const scroll = () => { log.scrollTop = log.scrollHeight; };
   function cards(fs, opts) { opts = opts || {};
     return `<div class="kc-files">${fs.map(f => `<div class="kc-f"><button class="kc-open" data-open="${f.id}"><span class="kc-t">${typeLabel(f)}</span><span><b>${esc(f.title)}</b><small>${esc(where(f))} · ${f.id}</small></span></button>
       <div class="kc-acts">${f.pdf ? `<a href="${encP(f.pdf)}" target="_blank" rel="noopener">PDF</a>` : ''}${opts.list ? `<button data-unlist="${f.id}" data-list="${esc(opts.list)}">شيل من القائمة</button>` : `<button data-pick="${f.id}">أضف لقائمة</button>`}</div></div>`).join('')}</div>`; }
-  function greet() { bot(`أهلاً أبو أنفال 👋 أنا مساعد أرشيف كيانات.<br>اطلب أي ملف وبفتحه لك مباشرة، أو قلّي أضيفه لقائمة، أو أعمل فهرس لمشروع.`); }
+  function greet() { bot(`أهلاً أبو أنفال 👋 أنا مساعد أرشيف كيانات.<br>اطلب أي ملف وبفتحه لك مباشرة، أو قلّي أضيفه لقائمة، أو أعمل فهرس لمشروع.<br>🎙️ وبتقدر تضغط المايك وتحكي الأمر بصوتك.`); }
   function help() { return bot(`<b>شو بقدر أعمل:</b><ul>
     <li><b>أعرض ملف:</b> «اعرض صك السقيا»، «جيبلي المخطط النهائي للفلل»، «افتح f12»</li>
     <li><b>أضيف لقائمة:</b> «أضف دراسة جدوى الجصة لقائمة المستثمرين»</li>
     <li><b>القوائم:</b> «قوائمي»، «اعرض قائمة الصكوك»، «أنشئ قائمة اجتماع الخميس»</li>
     <li><b>فهرس:</b> «اعمل فهرس للجصة»، «فهرس العروض»، «فهرس كل الأرشيف» ← وبتقدر تطبعه PDF أو تنزله Excel</li>
+    <li><b>بالصوت:</b> اضغط 🎙️ واحكي: «افتح صك السقيا»، «افتح ملف رقم 12»، «خلصت مهمة رقم 3»</li>
     <li><b>الجديد والمهام:</b> «شو الجديد؟»، «المهام»، «أضف مهمة: …»، «خلصت t3»</li></ul>`); }
 
   /* ---------- فهم الأوامر (محلي) ---------- */
@@ -127,6 +129,36 @@
     indexShow: /^(فهارسي|الفهارس|اعرض الفهارس)/,
     index: /(فهرس|كشف|جدول)\s*(ب|ل|لـ|عن|حق|تبع)?\s*(.*)$/,
   };
+  /* ---------- الأوامر الصوتية ---------- */
+  let rec = null, listening = false, viaVoice = false;
+  function spoken(t) {                       // تنظيف ما بيطلع من التعرّف الصوتي
+    return t.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+      .replace(/(?:^|\s)(?:اف|إف|ملف رقم|الملف رقم)\s*(\d+)/g, ' f$1')
+      .replace(/(?:^|\s)(?:تي|مهمة رقم|المهمة رقم|المهمه رقم)\s*(\d+)/g, ' t$1')
+      .replace(/\s*(فاصلة|نقطتين)\s*/g, ': ').replace(/\s+/g, ' ').trim();
+  }
+  function setupVoice() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const mic = root.querySelector('.kc-mic');
+    if (!SR) { mic.addEventListener('click', () => bot('المتصفح هاد ما بيدعم الأوامر الصوتية. على الآيفون افتح الموقع من Safari، وعلى الأندرويد من Chrome. وبتقدر كمان تستخدم مايك الكيبورد 🎙️ وتحكي، والكلام بينكتب لحاله.')); return; }
+    rec = new SR(); rec.lang = 'ar-SA'; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+    let finalText = '';
+    rec.onstart = () => { listening = true; finalText = ''; root.classList.add('kc-listening'); input.value = ''; input.placeholder = 'عم بسمعك… احكي الأمر'; };
+    rec.onresult = e => { let t = ''; for (let i = 0; i < e.results.length; i++) { t += e.results[i][0].transcript; if (e.results[i].isFinal) finalText = t; } input.value = t; };
+    rec.onerror = e => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') bot('لازم تسمح للموقع يستخدم المايك: من إعدادات المتصفح ← الموقع ← المايكروفون ← سماح.'); else if (e.error === 'no-speech') bot('<small class="kc-mute">ما سمعت إشي، اضغط المايك وجرّب كمان مرة.</small>'); };
+    rec.onend = () => { listening = false; root.classList.remove('kc-listening'); input.placeholder = 'اكتب أو اضغط المايك واحكي';
+      const t = spoken(finalText || input.value); input.value = ''; if (t) { viaVoice = true; send(t); } };
+    mic.addEventListener('click', () => { if (listening) { rec.stop(); return; } if (window.speechSynthesis) window.speechSynthesis.cancel(); try { rec.start(); } catch (e) {} });
+  }
+  function say(html) {                       // رد صوتي قصير لما يكون الأمر بالصوت
+    if (!viaVoice) return; viaVoice = false; if (!window.speechSynthesis) return;
+    const d = document.createElement('div'); d.innerHTML = html; d.querySelectorAll('.kc-files,.kc-tbl,.kc-row,.kc-chips,small,ul').forEach(x => x.remove());
+    let t = d.textContent.replace(/\s+/g, ' ').trim(); if (!t) return; if (t.length > 160) t = t.slice(0, 160);
+    const v = speechSynthesis.getVoices().find(x => /^ar/i.test(x.lang)); if (!v) return;
+    const u = new SpeechSynthesisUtterance(t); u.lang = v.lang; u.voice = v; u.rate = 1.05;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  }
+
   async function send(text) {
     if (pinAsk) { me('••••••••'); const r = pinAsk; pinAsk = null; LS.set('kayanat-pin', text.trim()); r(text.trim()); return; }
     me(text);
