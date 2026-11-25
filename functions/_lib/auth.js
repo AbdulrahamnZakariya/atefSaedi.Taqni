@@ -40,11 +40,13 @@ export async function verifyAccessJwt(token, env) {
 const list = v => String(v || '').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
 
 export function roleOf(email, env) {
-  return email === String(env.OWNER_EMAIL || '').toLowerCase().trim() ? 'owner' : 'admin';
+  if (email === String(env.OWNER_EMAIL || '').toLowerCase().trim()) return 'owner';
+  if (list(env.ALLOWED_EMAILS).includes(email)) return 'admin';
+  return 'viewer'; // زائر مسجّل للأسئلة فقط (VIEWER_EMAILS)
 }
 
 export async function authenticate(request, env) {
-  const allowed = list(env.ALLOWED_EMAILS);
+  const allowed = [...list(env.ALLOWED_EMAILS), ...list(env.VIEWER_EMAILS)];
   if (!allowed.length) return null; // بدون قائمة إيميلات: ولا حدا بيدخل
   const host = new URL(request.url).hostname;
   // تجربة محلية فقط (wrangler على جهازك). على الإنترنت ما بيشتغل.

@@ -64,3 +64,20 @@
 #kc.kc-listening .kc-mic{background:#B4433A;border-color:#B4433A;color:#fff;animation:kcmic 1.2s infinite}
 #kc.kc-listening .kc-in input{border-color:#B4433A}
 @keyframes kcmic{0%{box-shadow:0 0 0 0 #b4433a66}100%{box-shadow:0 0 0 12px #b4433a00}}
+/* الوكيل: بطاقة خطة التنفيذ */
+#kc .kc-plan{border:1.5px solid var(--kc-gold);border-radius:14px;background:#fffdf8;padding:11px 12px;margin-top:4px}
+#kc .kc-plan-h{font-size:12px;font-weight:700;color:#9a7a37;letter-spacing:.2px;margin-bottom:3px}
+#kc .kc-plan>b{display:block;font-size:14.5px;line-height:1.5}
+#kc .kc-prs{display:flex;flex-direction:column;gap:6px;margin-top:8px;max-height:260px;overflow-y:auto}
+#kc .kc-pr{background:var(--kc-chalk);border-radius:10px;padding:7px 9px;font-size:12.5px;line-height:1.55}
+#kc .kc-pr>b{font-weight:600}#kc .kc-pr>small{color:var(--kc-stone)}
+#kc .kc-pr>div{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:3px}
+#kc .kc-pr i{font-style:normal;color:var(--kc-gold);font-weight:700}
+#kc .kc-from{color:var(--kc-stone);text-decoration:line-through;text-decoration-color:#c9ced6}
+#kc .kc-to{color:var(--kc-ink);font-weight:600}
+#kc .kc-warn{background:#fbeaea;color:#8c2f26;border-radius:8px;padding:6px 9px;font-size:12.5px;margin-top:7px}
+#kc .kc-ord{margin:8px 0 0;padding-inline-start:22px;font-size:12.5px;max-height:240px;overflow-y:auto}#kc .kc-ord small{color:var(--kc-stone)}
+#kc .kc-plan .kc-row button:first-child{min-width:96px}
+#kc .kc-th{flex:none;width:44px;height:44px;border-radius:8px;object-fit:cover;background:#e7e1d4}
+#kc .kc-open em{font-style:normal;color:#a63d32;font-weight:600}
+#kc .kc-acts .kc-go{background:var(--kc-ink);border-color:var(--kc-ink);color:#fff}

@@ -96,25 +96,29 @@
     root.querySelector('form').onsubmit = e => { e.preventDefault(); const v = input.value.trim(); if (!v) return; input.value = ''; send(v); };
     root.addEventListener('click', onAction);
     setupVoice();
-    setSug(['شو الجديد؟', 'اعرض صك السقيا', 'اعمل فهرس للجصة', 'قوائمي', 'المهام', 'شو بتقدر تعمل؟']);
+    setSug(SESSION() ? ['رتّب ملفات مشروع…', 'وين صك…؟', 'شو الملفات المعلّقة؟', 'سلة المحذوفات', 'تراجع', 'شو الجديد؟', 'شو بتقدر تعمل؟'] : ['شو الجديد؟', 'اعرض صك السقيا', 'اعمل فهرس للجصة', 'قوائمي', 'المهام', 'شو بتقدر تعمل؟']);
   }
   function toggle(on) { root.classList.toggle('on', on); if (on) { if (!log.children.length) greet(); setTimeout(() => input.focus(), 50); } }
-  function setSug(a) { root.querySelector('.kc-sug').innerHTML = a.map(x => `<button data-say="${esc(x)}">${esc(x)}</button>`).join(''); }
-  function updateMode() { const m = root && root.querySelector('#kc-mode'); if (m) m.textContent = S.config.workerUrl ? 'الوضع الذكي' : 'يشتغل على الأرشيف مباشرة'; }
+  function setSug(a) { root.querySelector('.kc-sug').innerHTML = a.map(x => /…/.test(x) ? `<button data-fill="${esc(x.replace(/…/, '').replace(/؟$/, ''))}">${esc(x)}</button>` : `<button data-say="${esc(x)}">${esc(x)}</button>`).join(''); }
+  function updateMode() { const m = root && root.querySelector('#kc-mode'); if (m) m.textContent = S.config.workerUrl ? ('الوضع الذكي' + (S.config.user ? ' · ' + S.config.user : '')) : 'يشتغل على الأرشيف مباشرة'; }
   function me(t) { const d = document.createElement('div'); d.className = 'kc-m kc-me'; d.textContent = t; log.appendChild(d); scroll(); }
-  function bot(html, files, raw) { const d = document.createElement('div'); d.className = 'kc-m kc-bot'; d.innerHTML = html + (files && files.length ? cards(files) : ''); log.appendChild(d); scroll(); if (!/kc-dots/.test(html)) say(html); return d; }
+  function bot(html, files, raw) { const d = document.createElement('div'); d.className = 'kc-m kc-bot'; d.innerHTML = html + (files && files.length ? cards(files, raw === true && SESSION() ? { del: true } : {}) : ''); log.appendChild(d); scroll(); if (!/kc-dots/.test(html)) say(html); return d; }
   const scroll = () => { log.scrollTop = log.scrollHeight; };
   function cards(fs, opts) { opts = opts || {};
-    return `<div class="kc-files">${fs.map(f => `<div class="kc-f"><button class="kc-open" data-open="${f.id}"><span class="kc-t">${typeLabel(f)}</span><span><b>${esc(f.title)}</b><small>${esc(where(f))} · ${f.id}</small></span></button>
-      <div class="kc-acts">${f.pdf ? `<a href="${encP(f.pdf)}" target="_blank" rel="noopener">PDF</a>` : ''}${opts.list ? `<button data-unlist="${f.id}" data-list="${esc(opts.list)}">شيل من القائمة</button>` : `<button data-pick="${f.id}">أضف لقائمة</button>`}</div></div>`).join('')}</div>`; }
-  function greet() { bot(`أهلاً أبو أنفال 👋 أنا مساعد أرشيف كيانات.<br>اطلب أي ملف وبفتحه لك مباشرة، أو قلّي أضيفه لقائمة، أو أعمل فهرس لمشروع.<br>🎙️ وبتقدر تضغط المايك وتحكي الأمر بصوتك.`); }
+    const isImg = f => /\.(jpe?g|png|webp|gif)$/i.test(f.path || '');
+    return `<div class="kc-files">${fs.map(f => `<div class="kc-f"><button class="kc-open" data-open="${f.id}">${isImg(f) ? `<img class="kc-th" src="${encP(f.path)}" loading="lazy" alt="">` : `<span class="kc-t">${typeLabel(f)}</span>`}<span><b>${esc(f.title)}</b><small>${esc(where(f))} · ${f.date ? esc(f.date) + ' · ' : ''}${f.id}${f.status && f.status !== 'مصنّف' ? ` · <em>${esc(f.status)}</em>` : ''}</small></span></button>
+      <div class="kc-acts"><a href="${encP(f.path)}" target="_blank" rel="noopener" class="kc-go">فتح</a>${f.pdf ? `<a href="${encP(f.pdf)}" target="_blank" rel="noopener">PDF</a>` : ''}${opts.list ? `<button data-unlist="${f.id}" data-list="${esc(opts.list)}">شيل من القائمة</button>` : `<button data-pick="${f.id}">أضف لقائمة</button>`}${opts.del && SESSION() ? `<button data-del="${f.id}">احذف هذا</button>` : ''}</div></div>`).join('')}</div>`; }
+  function greet() { bot(SESSION() && role() !== 'viewer' ? `أهلاً ${role() === 'owner' ? 'أبو أنفال' : ''} 👋 أنا مساعد الأرشيف.<br>بلاقيلك أي ملف، وبرتّب وبنقل وبسمّي وبحذف للسلة. أي تعديل بعرضلك خطته أول، وما بيتنفّذ إلا لما تضغط «تأكيد».<br>🎙️ وبتقدر تحكي بصوتك.` : `أهلاً أبو أنفال 👋 أنا مساعد أرشيف كيانات.<br>اطلب أي ملف وبفتحه لك مباشرة، أو قلّي أضيفه لقائمة، أو أعمل فهرس لمشروع.<br>🎙️ وبتقدر تضغط المايك وتحكي الأمر بصوتك.`); }
   function help() { return bot(`<b>شو بقدر أعمل:</b><ul>
     <li><b>أعرض ملف:</b> «اعرض صك السقيا»، «جيبلي المخطط النهائي للفلل»، «افتح f12»</li>
     <li><b>أضيف لقائمة:</b> «أضف دراسة جدوى الجصة لقائمة المستثمرين»</li>
     <li><b>القوائم:</b> «قوائمي»، «اعرض قائمة الصكوك»، «أنشئ قائمة اجتماع الخميس»</li>
     <li><b>فهرس:</b> «اعمل فهرس للجصة»، «فهرس العروض»، «فهرس كل الأرشيف» ← وبتقدر تطبعه PDF أو تنزله Excel</li>
     <li><b>بالصوت:</b> اضغط 🎙️ واحكي: «افتح صك السقيا»، «افتح ملف رقم 12»، «خلصت مهمة رقم 3»</li>
-    <li><b>الجديد والمهام:</b> «شو الجديد؟»، «المهام»، «أضف مهمة: …»، «خلصت t3»</li></ul>`); }
+    <li><b>الجديد والمهام:</b> «شو الجديد؟»، «المهام»، «أضف مهمة: …»، «خلصت t3»</li>${SESSION() && role() !== 'viewer' ? `
+    <li><b>ترتيب الأرشيف:</b> «انقل جدول تكاليف المشروع لمشروع السقيا»، «سمّي f12: محضر اجتماع السقيا الأول»، «رتّب ملفات الأعمدة حسب التاريخ»</li>
+    <li><b>الحذف والاسترجاع:</b> «احذف f33» ← بيروح للسلة 30 يوم، «رجّعها»، «سلة المحذوفات»، «تراجع»</li>
+    <li><b>المعلّق:</b> «شو الملفات المعلّقة؟»، «أكّد f13»</li>` : ''}</ul>`); }
 
   /* ---------- فهم الأوامر (محلي) ---------- */
   const RX = {
@@ -172,6 +176,7 @@
   function local(text) {
     const n = N(text).replace(/\s+/g, ' ').trim(); let m;
     if (RX.help.test(n)) return help();
+    if (SESSION()) { const r = localOps(text, n); if (r !== false) return r; }
     if ((m = n.match(RX.taskDone))) return taskDone(m[3]);
     if ((m = text.match(/^\s*(أضف|اضف|ضيف|سجل|سجّل|اكتب)\s*مهمة\s*[:：]?\s*(.+)/))) return taskAdd(m[2]);
     if (RX.tasksShow.test(n)) return tasksShow();
@@ -297,9 +302,16 @@
 
   /* ---------- الأزرار داخل المحادثة ---------- */
   async function onAction(e) {
-    const b = e.target.closest('[data-say],[data-open],[data-pick],[data-addto],[data-unlist],[data-done],[data-idx],[data-idx-open],[data-idx-list]'); if (!b) return;
+    const b = e.target.closest('[data-say],[data-fill],[data-open],[data-pick],[data-addto],[data-unlist],[data-done],[data-idx],[data-idx-open],[data-idx-list],[data-confirm],[data-confirm2],[data-cancel],[data-restore],[data-purge],[data-del]'); if (!b) return;
     e.preventDefault(); const ds = b.dataset;
     if (ds.say) return send(ds.say);
+    if (ds.fill) { input.value = ds.fill; input.focus(); return; }
+    if (ds.confirm) return confirmPlan(ds.confirm, b, false);
+    if (ds.confirm2) return confirmPlan(ds.confirm2, b, true);
+    if (ds.cancel) return cancelPlan(ds.cancel, b);
+    if (ds.restore) return proposePlan('restore', { ids: ds.restore.split(',') }, true);
+    if (ds.purge) return proposePlan('purge', { ids: ds.purge.split(',') }, true);
+    if (ds.del) return proposePlan('delete', { ids: [ds.del] }, true);
     if (ds.open) { if (typeof openV === 'function') openV(ds.open); return; }
     if (ds.pick) { const f = D().files.find(x => x.id === ds.pick); const names = Object.keys(S.lists);
       pending = null; return bot(`لأي قائمة أضيف «${esc(f.title)}»؟<div class="kc-chips">${names.map(x => `<button data-addto="${f.id}" data-to="${esc(x)}">${esc(x)}</button>`).join('')}</div><small class="kc-mute">أو اكتب: أضف ${esc(f.id)} لقائمة (اسم جديد)</small>`); }
@@ -316,10 +328,114 @@
     }
   }
 
+  /* ---------- الوكيل: خطة ← تأكيد ← تنفيذ ---------- */
+  const PLANS = {}; let planSeq = 0, lastTrashed = [];
+  const role = () => S.config.role || '';
+  async function proposePlan(op, args, direct) {
+    if (!SESSION()) return { error: 'التعديل متاح بالموقع الآمن بس' };
+    if (role() === 'viewer') { if (direct) bot('صلاحيتك للأسئلة بس.'); return { error: 'صلاحيتك للأسئلة فقط' }; }
+    let r, j;
+    try { r = await fetch('api/plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ op, args }) }); j = await r.json(); }
+    catch (e) { if (direct) bot('ما قدرت أوصل للخادم، جرّب كمان شوي.'); return { error: 'ما قدرت أوصل للخادم' }; }
+    if (!r.ok) { if (direct) bot(esc(j.error || 'صار خطأ')); return { error: j.error || 'خطأ' }; }
+    const id = 'p' + (++planSeq); PLANS[id] = j;
+    bot(planCard(id, j.plan));
+    return { status: 'plan_shown', title: j.plan.title, files: j.plan.rows.length, note: 'الخطة معروضة ببطاقة. لسا ما تنفذت: المستخدم لازم يضغط «تأكيد».' };
+  }
+  function planCard(id, p) {
+    const rows = p.rows.map(r => `<div class="kc-pr"><b>${esc(r.title)}</b> <small>${esc(r.id)}</small><div><span class="kc-from">${esc(r.from)}</span><i>←</i><span class="kc-to">${esc(r.to)}</span></div></div>`).join('');
+    const meta = p.meta && !p.rows.length ? `<div class="kc-pr"><b>${esc(p.meta.remove ? 'إزالة' : 'جديد')}: ${esc(p.meta.name)}</b></div>` : '';
+    const order = p.order ? `<ol class="kc-ord">${p.order.map(o => `<li>${esc(o.title)} <small>${esc(o.date || '')}</small></li>`).join('')}</ol>` : '';
+    return `<div class="kc-plan" id="kc-${id}"><div class="kc-plan-h">📋 خطة التنفيذ</div><b>${esc(p.title)}</b>
+      ${p.rows.length > 1 ? `<small class="kc-mute">الملفات المتأثرة: ${p.rows.length}</small>` : ''}
+      ${(p.warnings || []).map(w => `<div class="kc-warn">⚠️ ${esc(w)}</div>`).join('')}
+      ${order || `<div class="kc-prs">${rows}${meta}</div>`}
+      <div class="kc-row"><button data-confirm="${id}">تأكيد</button><button data-cancel="${id}">إلغاء</button></div></div>`;
+  }
+  async function confirmPlan(id, btn, second) {
+    const p = PLANS[id], box = btn.closest('.kc-plan'), row = box.querySelector('.kc-row');
+    if (!p) { row.innerHTML = '<small class="kc-mute">الخطة انتهت، اطلبها من جديد.</small>'; return; }
+    if (p.plan.second && !second) { row.innerHTML = `<div class="kc-warn">متأكد؟ هذا حذف نهائي وما بيرجع.</div><button data-confirm2="${id}">نعم، احذف نهائياً</button><button data-cancel="${id}">لا</button>`; return; }
+    row.innerHTML = '<span class="kc-dots"><i></i><i></i><i></i></span>';
+    let r, j;
+    try { r = await fetch('api/execute', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan: p.plan, token: p.token, second: !!second }) }); j = await r.json(); }
+    catch (e) { r = null; j = { error: 'انقطع الاتصال. افحص سجل العمليات قبل ما تعيد.' }; }
+    delete PLANS[id];
+    if (r && r.ok) {
+      row.innerHTML = '<small class="kc-ok">✓ تم التنفيذ</small>';
+      if (p.plan.op === 'delete') lastTrashed = p.plan.rows.map(x => x.id);
+      notes.push(`(ملاحظة من النظام: المستخدم ضغط تأكيد وتنفّذت «${j.title}»، رقم العملية ${j.n}.)`);
+      bot(`تم ✓ ${esc(j.title)}.<br><small class="kc-mute">انحفظ بالأرشيف، وتحدّث الفهرس وصفحات المشاريع. للتراجع اكتب «تراجع».</small>`);
+      try { if (typeof loadData === 'function') { await loadData(true); if (typeof route === 'function') route(); } } catch (e) {}
+    } else { row.innerHTML = '<small class="kc-mute">ما تنفّذت</small>'; notes.push('(ملاحظة من النظام: العملية ما تنفذت: ' + (j.error || '') + ')'); bot('ما تنفّذت: ' + esc(j.error || 'صار خطأ')); }
+  }
+  function cancelPlan(id, btn) { delete PLANS[id]; btn.closest('.kc-plan').querySelector('.kc-row').innerHTML = '<small class="kc-mute">انلغت، وما تغيّر إشي.</small>'; notes.push('(ملاحظة من النظام: المستخدم ألغى الخطة.)'); }
+  function pendingShow() {
+    const fs = pool().filter(f => f.section === 'todo' || /(تأكيد|تصنيف)/.test(f.status || ''));
+    if (!fs.length) { bot('ما في ملفات معلّقة 👌'); return { count: 0 }; }
+    bot(`في ${fs.length} ${fs.length > 1 ? 'ملفات معلّقة' : 'ملف معلّق'}:`, fs);
+    return fs.map(f => ({ id: f.id, title: f.title, status: f.status, where: where(f), note: f.note }));
+  }
+  function trashShow() {
+    const t = D().trash || [];
+    if (!t.length) { bot('سلة المحذوفات فاضية.'); return { count: 0 }; }
+    bot(`<b>سلة المحذوفات</b> <small class="kc-mute">(بتنحذف لحالها بعد 30 يوم)</small><div class="kc-files">${t.map(f => `<div class="kc-f"><div class="kc-open"><span class="kc-t">${typeLabel(f)}</span><span><b>${esc(f.title)}</b><small>${f.id} · باقي ${f.daysLeft} يوم</small></span></div><div class="kc-acts"><button data-restore="${f.id}">رجّعه</button>${role() === 'owner' ? `<button data-purge="${f.id}">حذف نهائي</button>` : ''}</div></div>`).join('')}</div>`);
+    return t.map(f => ({ id: f.id, title: f.title, days_left: f.daysLeft }));
+  }
+  // أوامر بدون الذكاء: بتشتغل حتى لو Gemini واقف
+  function localOps(text, n) {
+    let m;
+    if (/^(تراجع|ارجع عن|الغي اخر|رجع اخر)/.test(n)) return proposePlan('undo', {}, true);
+    if (/(سله|سلة)/.test(n)) return trashShow();
+    if (/(معلق|معلقه|بحاجه تصنيف|تحتاج تاكيد|يحتاج تاكيد|الملفات المعلقه)/.test(n)) return pendingShow();
+    if (/^(رجعها|رجعهم|رجعه|استرجعها|استرجعهم|رجع المحذوف)/.test(n)) return lastTrashed.length ? proposePlan('restore', { ids: lastTrashed }, true) : trashShow();
+    if ((m = n.match(/^(احذف|امسح)\s+(.+)$/))) {
+      if (/(قديم|كل|جميع|الملفات$)/.test(m[2])) return bot('قصدك أي ملفات بالضبط؟ قلّي القسم أو المشروع أو التاريخ، وبعرضلك القائمة قبل أي حذف.');
+      const h = search(m[2], 6); if (!h.length) return bot('ما لقيته. جرّب اسم أوضح أو رقم الملف (مثل f12).');
+      if (h.length === 1) return proposePlan('delete', { ids: [h[0].id] }, true);
+      return bot('لقيت أكثر من ملف، أيّهم بدك تحذف؟', h, true);
+    }
+    if ((m = n.match(/^رتب\s+(ملفات\s+)?(مشروع\s+)?(.+?)(\s+(حسب|ب)\s*(ال)?(تاريخ|اسم|ابجدي))?$/))) {
+      const d = D(), tgt = m[3].trim(), mode = /اسم|ابجد/.test(m[7] || '') ? 'title' : 'date_desc';
+      const p = d.projects.find(x => tgt.includes(N(x.name).replace(/^ال/, '')));
+      if (p) return proposePlan('reorder', { section: 'proj', project: p.name, mode }, true);
+      const sec = { 'عروض': 'off', 'هندس': 'eng', 'مكاتب': 'eng', 'خاص': 'priv', 'تصنيف': 'todo' }; for (const k in sec) if (tgt.includes(k)) return proposePlan('reorder', { section: sec[k], mode }, true);
+      return bot('أي مشروع أو قسم بدك أرتّب؟');
+    }
+    if ((m = text.match(/^\s*(انقل|حط|حوّل|حول)\s+(.+?)\s+(لمشروع|إلى مشروع|الى مشروع|على مشروع|ل)\s*(.+?)[؟?.!]*\s*$/))) {
+      const d = D(), tgt = N(m[4]);
+      const p = d.projects.find(x => tgt.includes(N(x.name).replace(/^ال/, '')));
+      if (!p) return false;
+      const h = search(m[2], 6); if (!h.length) return bot('ما لقيت الملف. جرّب اسم أوضح أو رقمه.');
+      if (h.length > 1 && !(h[0]._h > h[1]._h)) return bot('أي ملف بالضبط؟', h);
+      return proposePlan('move', { ids: [h[0].id], section: 'proj', project: p.name }, true);
+    }
+    return false;
+  }
+
   /* ---------- الوضع الذكي (Claude عبر الوسيط) ---------- */
-  const hist = [];
+  const hist = [], notes = [];
   const TOOLS = {
-    search_files: a => { const h = search(a.query || '', 10); return h.map(f => ({ id: f.id, title: f.title, where: where(f), type: typeLabel(f), date: f.date })); },
+    search_files: async a => {
+      const fit = f => (!a.section || f.section === a.section) && (!a.project || N(f.project).includes(N(a.project))) && (!a.date_from || (f.date || '') >= a.date_from) && (!a.date_to || (f.date || '') <= a.date_to);
+      let fs = (a.query ? search(a.query, 40) : pool().slice()).filter(fit);
+      if (SESSION() && a.query) { try { const r = await fetch('api/search?q=' + encodeURIComponent(a.query), { cache: 'no-store' }); const j = r.ok ? await r.json() : { ids: [] };
+        (j.ids || []).forEach(id => { const f = pool().find(x => x.id === id); if (f && fit(f) && !fs.includes(f)) fs.push(Object.assign(f, { _via: 'محتوى الملف' })); }); } catch (e) {} }
+      if (!fs.length) return { found: 0, note: 'ما لقيته. اقترح كلمة بحث أقرب.' };
+      return fs.slice(0, 15).map(f => ({ id: f.id, title: f.title, where: where(f), type: typeLabel(f), date: f.date, status: f.status, via: f._via }));
+    },
+    get_file_info: a => { const f = pool().find(x => x.id === String(a.id)); if (!f) return { error: 'ما لقيته' }; bot('', [f]);
+      return { id: f.id, title: f.title, section: secName(f.section), sub: f.sub, project: f.project, party: f.party, date: f.date, source: f.source, note: f.note, status: f.status, tags: f.tags || [], desc: f.desc || '', type: typeLabel(f), pdf_copy: f.pdf ? 'موجودة' : (/\.pdf$/i.test(f.path) ? 'الملف أصلاً PDF' : 'ما في') }; },
+    list_pending: () => pendingShow(),
+    list_trash: () => trashShow(),
+    move_file: a => proposePlan('move', a),
+    rename_file: a => proposePlan('rename', a),
+    reorder_files: a => proposePlan('reorder', a),
+    create_section: a => proposePlan('create_section', a),
+    update_metadata: a => proposePlan('update_metadata', a),
+    delete_file: a => proposePlan('delete', a),
+    restore_file: a => proposePlan('restore', a),
+    undo_last: () => proposePlan('undo', {}),
     open_file: a => { const f = pool().find(x => x.id === a.id); if (!f) return { error: 'not found' }; bot(`فتحتلك: <b>${esc(f.title)}</b>`, [f]); if (typeof openV === 'function') openV(f.id); return { ok: true }; },
     show_files: a => { const fs = (a.ids || []).map(id => pool().find(x => x.id === id)).filter(Boolean); if (fs.length) bot(a.caption ? esc(a.caption) : '', fs); return { shown: fs.length }; },
     list_lists: () => Object.fromEntries(Object.entries(S.lists).map(([k, v]) => [k, visible(v).length])),
@@ -334,7 +450,7 @@
   };
   async function ai(text) {
     const pin = await getPin(); if (!pin) throw new Error('nopin');
-    hist.push({ role: 'user', content: text });
+    hist.push({ role: 'user', content: (notes.length ? notes.splice(0).join('\n') + '\n' : '') + text });
     const typing = bot('<span class="kc-dots"><i></i><i></i><i></i></span>');
     try {
       for (let step = 0; step < 6; step++) {
@@ -358,5 +474,5 @@
   /* ---------- تشغيل ---------- */
   function start() { build(); load(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
-  window.KayanatChat = { send, search, state: S };
+  window.KayanatChat = { send, search, state: S, plan: (op, args) => { toggle(true); return proposePlan(op, args, true); } };
 })();

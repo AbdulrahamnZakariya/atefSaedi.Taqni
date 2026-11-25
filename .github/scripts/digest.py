@@ -29,7 +29,7 @@ def archive():
 
 def build():
     data = archive()
-    files = data.get("files", [])
+    files = [f for f in data.get("files", []) if not f.get("trash")]  # سلة المحذوفات ما بتنحسب
     tasks = load_json(P("data", "tasks.json"), {}).get("tasks", [])
     lists = load_json(P("data", "lists.json"), {}).get("lists", {})
     state = load_json(P("data", "digest-state.json"), {})
