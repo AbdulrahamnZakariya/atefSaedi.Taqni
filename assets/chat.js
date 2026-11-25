@@ -1,13 +1,15 @@
 /* مساعد أرشيف كيانات · فريق تقني واعي
    يشتغل محلياً بدون أي مفتاح (بحث، عرض، قوائم، فهارس، مهام)،
-   وبيتحول للوضع الذكي (Claude) لما ينحط workerUrl في data/config.json. */
+   وبيتحول للوضع الذكي (Gemini) لما يشتغل على الخادم الآمن (window.KAYANAT_SESSION)،
+   أو لما ينحط workerUrl في data/config.json بالنسخة القديمة. */
 (function () {
   'use strict';
   const D = () => window.DATA || (typeof DATA !== 'undefined' ? DATA : { files: [], projects: [], investors: [] });
   const isUnlocked = () => { try { return typeof unlocked !== 'undefined' && unlocked; } catch (e) { return false; } };
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const N = s => (s || '').toLowerCase().replace(/[أإآا]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/[ؤ]/g, 'و').replace(/[ئ]/g, 'ي').replace(/[ًٌٍَُِّْـ]/g, '').replace(/[·_\-()،,.؟?!:«»"]/g, ' ');
-  const encP = p => p.split('/').map(encodeURIComponent).join('/');
+  const SESSION = () => !!window.KAYANAT_SESSION;   // الموقع الآمن: البيانات والملفات من الخادم بعد تسجيل الدخول
+  const encP = p => (SESSION() ? 'api/f/' : '') + p.split('/').map(encodeURIComponent).join('/');
   const today = () => new Date().toISOString().slice(0, 10);
   const LS = { get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
                set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
@@ -16,7 +18,8 @@
   const S = { lists: {}, indexes: [], tasks: [], config: {}, ready: false };
   async function getJSON(p) { try { const r = await fetch(p + '?t=' + Date.now(), { cache: 'no-store' }); return r.ok ? r.json() : null; } catch (e) { return null; } }
   async function load() {
-    const [l, i, t, c] = await Promise.all(['data/lists.json', 'data/indexes.json', 'data/tasks.json', 'data/config.json'].map(getJSON));
+    const src = SESSION() ? ['api/json/lists', 'api/json/indexes', 'api/json/tasks', 'api/json/config'] : ['data/lists.json', 'data/indexes.json', 'data/tasks.json', 'data/config.json'];
+    const [l, i, t, c] = await Promise.all(src.map(getJSON));
     S.lists = (l && l.lists) || {}; S.indexes = (i && i.indexes) || []; S.tasks = (t && t.tasks) || []; S.config = c || {};
     const loc = LS.get('kayanat-local', null);           // تعديلات هالجهاز بتندمج مع ملفات الفريق بدل ما تغطي عليها
     if (loc && !S.config.workerUrl) {
@@ -42,7 +45,8 @@
   }
   const savedNote = m => m === 'synced' ? '<small class="kc-ok">✓ انحفظت وبتوصل تنبيه على واتساب</small>' : '<small class="kc-mute">انحفظت على هالجهاز</small>';
   let pinAsk = null;
-  function getPin() { const p = LS.get('kayanat-pin', null); if (p) return Promise.resolve(p);
+  function getPin() { if (S.config.session) return Promise.resolve('session');   // الدخول بالإيميل بدل الرمز
+    const p = LS.get('kayanat-pin', null); if (p) return Promise.resolve(p);
     return new Promise(res => { pinAsk = res; bot('لتشغيل المساعد الذكي والحفظ المشترك اكتب <b>رمز المزامنة</b> (مرة وحدة بس على هالجهاز):', [], true); }); }
 
   /* ---------- البحث ---------- */
@@ -96,7 +100,7 @@
   }
   function toggle(on) { root.classList.toggle('on', on); if (on) { if (!log.children.length) greet(); setTimeout(() => input.focus(), 50); } }
   function setSug(a) { root.querySelector('.kc-sug').innerHTML = a.map(x => `<button data-say="${esc(x)}">${esc(x)}</button>`).join(''); }
-  function updateMode() { const m = root && root.querySelector('#kc-mode'); if (m) m.textContent = S.config.workerUrl ? 'الوضع الذكي · Claude' : 'يشتغل على الأرشيف مباشرة'; }
+  function updateMode() { const m = root && root.querySelector('#kc-mode'); if (m) m.textContent = S.config.workerUrl ? 'الوضع الذكي' : 'يشتغل على الأرشيف مباشرة'; }
   function me(t) { const d = document.createElement('div'); d.className = 'kc-m kc-me'; d.textContent = t; log.appendChild(d); scroll(); }
   function bot(html, files, raw) { const d = document.createElement('div'); d.className = 'kc-m kc-bot'; d.innerHTML = html + (files && files.length ? cards(files) : ''); log.appendChild(d); scroll(); if (!/kc-dots/.test(html)) say(html); return d; }
   const scroll = () => { log.scrollTop = log.scrollHeight; };
