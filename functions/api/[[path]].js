@@ -1,7 +1,7 @@
 // واجهة الخادم · أرشيف كيانات
 // كل الطلبات هون وصلت بعد ما الـ middleware تأكد من تسجيل الدخول (ctx.data.user).
 import { json, safeEqual, now, hmac } from '../_lib/util.js';
-import { isUnlocked, privToken, privCookie, PRIV_TTL, signLink, checkLink } from '../_lib/auth.js';
+import { isUnlocked, privToken, privCookie, PRIV_TTL, signLink, checkLink, authFile, matches } from '../_lib/auth.js';
 import { getArchive, ghRaw, getJsonFile, ghPutJson } from '../_lib/github.js';
 import { systemPrompt, toGeminiContents, fromGemini, callGemini, TOOLS, READ_TOOLS } from '../_lib/gemini.js';
 import { planOp, applyPlan, planKey, replaceData, readData, PlanError, TRASH_DAYS, SEC_NAME } from '../_lib/archive.js';
@@ -114,8 +114,9 @@ export async function onRequest(ctx) {
       const k = user.email + '|' + (request.headers.get('CF-Connecting-IP') || '');
       if (tooMany(k)) return json({ error: 'slow down' }, 429);
       const body = await readBody(request);
-      if (!env.PRIV_PASSWORD || !env.SIGNING_KEY) return json({ error: 'server not configured' }, 500);
-      if (!body || !(await safeEqual(String(body.password || ''), env.PRIV_PASSWORD))) { fail(k); return json({ error: 'wrong' }, 401); }
+      const privRec = env.PRIV_PASSWORD ? { plain: env.PRIV_PASSWORD } : (await authFile(env)).priv;
+      if (!privRec || !env.SIGNING_KEY) return json({ error: 'server not configured' }, 500);
+      if (!body || !(await matches(body.password, privRec))) { fail(k); return json({ error: 'wrong' }, 401); }
       BAD.delete(k);
       return json({ ok: true }, 200, { 'Set-Cookie': privCookie(await privToken(user.email, env), PRIV_TTL) });
     }

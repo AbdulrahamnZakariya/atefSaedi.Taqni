@@ -1,5 +1,6 @@
 // كل طلب للموقع (الصفحة، الملفات، الـ API) بيمر من هون. بدون دخول صحيح: ولا إشي.
 import { authenticate, checkLogin, sessionToken, sessionCookie, SESSION_TTL } from './_lib/auth.js';
+import { hmac } from './_lib/util.js';
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const LOGIN = (msg = '') => `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -42,6 +43,8 @@ function sameSite(request, url) {
 
 export async function onRequest(ctx) {
   const { request, env } = ctx;
+  // مفتاح التوقيع: من SIGNING_KEY، وإلا بيتولّد ثابتاً من توكن GitHub السري
+  if (!env.SIGNING_KEY && env.GITHUB_TOKEN) env.SIGNING_KEY = await hmac(env.GITHUB_TOKEN, 'kayanat-signing-v1');
   const url = new URL(request.url);
   const isApi = url.pathname.startsWith('/api/');
 

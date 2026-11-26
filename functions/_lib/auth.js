@@ -1,6 +1,7 @@
 // تسجيل الدخول: Cloudflare Access (كود على الإيميل) + تحقق مستقل من التوقيع هون بالخادم.
 // إذا Access انضبط غلط أو انشال، الخادم برضو بيرفض أي طلب بدون توكن صحيح لإيميل مسموح.
-import { cookie, fromB64url, textFromB64url, te, now, hmac, safeEqual, b64urlText } from './util.js';
+import { cookie, fromB64url, textFromB64url, te, now, hmac, safeEqual, b64urlText, b64url } from './util.js';
+import { getJsonFile } from './github.js';
 
 let CERTS = { at: 0, keys: [] };
 
@@ -47,24 +48,49 @@ export function roleOf(email, env) {
 
 /* ---------- تسجيل دخول الموقع: إيميل + كلمة سر (بدون خدمات خارجية) ----------
    ACCOUNTS = "email1:password1,email2:password2" (سر بمتغيرات Cloudflare) */
-export function accounts(env) {
+// الحسابات: من المتغير ACCOUNTS (نص)، وإلا من data/auth.json بالمستودع (بصمات PBKDF2، مش كلمات سر)
+let AUTH = { at: 0, data: null };
+export async function authFile(env) {
+  if (AUTH.data && Date.now() - AUTH.at < 60e3) return AUTH.data;
+  const d = await getJsonFile(env, 'data/auth.json', null);
+  if (d) AUTH = { at: Date.now(), data: d };
+  return d || { accounts: {} };
+}
+export async function accounts(env) {
   const m = new Map();
-  for (const part of String(env.ACCOUNTS || '').split(',')) {
-    const i = part.indexOf(':');
-    if (i > 0) m.set(part.slice(0, i).trim().toLowerCase(), part.slice(i + 1).trim());
+  if (env.ACCOUNTS) {
+    for (const part of String(env.ACCOUNTS).split(',')) {
+      const i = part.indexOf(':');
+      if (i > 0) m.set(part.slice(0, i).trim().toLowerCase(), { plain: part.slice(i + 1).trim() });
+    }
+    return m;
   }
+  const a = (await authFile(env)).accounts || {};
+  for (const [e, v] of Object.entries(a)) m.set(e.toLowerCase(), v);
   return m;
+}
+export async function pbkdf2(password, salt, iter) {
+  const k = await crypto.subtle.importKey('raw', te.encode(String(password)), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: fromB64url(salt), iterations: Math.min(Number(iter) || 100000, 100000) }, k, 256);
+  return b64url(new Uint8Array(bits));
+}
+// مقارنة كلمة سر مع حساب (نص أو بصمة)
+export async function matches(password, rec) {
+  if (!rec) { await safeEqual(String(password || ''), '\u0000'); return false; }
+  if (rec.plain) return rec.plain.length >= 10 && (await safeEqual(String(password || ''), rec.plain));
+  if (!rec.salt || !rec.hash) return false;
+  return safeEqual(await pbkdf2(password || '', rec.salt, rec.iter), rec.hash);
 }
 export const SESSION_TTL = 14 * 24 * 3600;
 export async function checkLogin(email, password, env) {
   const e = String(email || '').trim().toLowerCase();
-  const p = accounts(env).get(e);
+  const rec = (await accounts(env)).get(e);
   const allowed = [...list(env.ALLOWED_EMAILS), ...list(env.VIEWER_EMAILS)];
-  const ok = await safeEqual(String(password || ''), p || '\u0000no-account');
-  return ok && !!p && p.length >= 10 && allowed.includes(e) ? e : null;
+  const ok = await matches(password, rec);
+  return ok && allowed.includes(e) ? e : null;
 }
 // التوقيع مربوط بكلمة سر الحساب: تغيير كلمة السر بيلغي كل الجلسات القديمة فوراً
-const pwFp = (email, env) => hmac(env.SIGNING_KEY, 'pw|' + (accounts(env).get(email) || ''));
+const pwFp = async (email, env) => { const r = (await accounts(env)).get(email) || {}; return hmac(env.SIGNING_KEY, 'pw|' + (r.plain || r.hash || '')); };
 export async function sessionToken(email, env) {
   const body = `${b64urlText(email)}.${now() + SESSION_TTL}`;
   return `${body}.${await hmac(env.SIGNING_KEY, 'sess|' + body + '|' + (await pwFp(email, env)))}`;
@@ -75,7 +101,7 @@ async function sessionUser(request, env) {
   const [e, exp, sig] = t.split('.');
   if (!e || !exp || !sig || Number(exp) < now()) return null;
   const email = textFromB64url(e);
-  if (!accounts(env).has(email)) return null; // حذف الحساب بيلغي جلسته فوراً
+  if (!(await accounts(env)).has(email)) return null; // حذف الحساب بيلغي جلسته فوراً
   if (!(await safeEqual(sig, await hmac(env.SIGNING_KEY, `sess|${e}.${exp}|${await pwFp(email, env)}`)))) return null;
   return email;
 }
