@@ -57,7 +57,7 @@ def build():
     # صفحات السلة وسجل العمليات
     html = sub_once(r"<h2>طريقة الاستخدام</h2>",
                     "<h2>الإدارة</h2><div class=\"grid\"><a class=\"sec\" href=\"#/trash\"><div class=\"ic\">🗑</div><b>سلة المحذوفات</b><span>بترجع خلال 30 يوم</span><div class=\"n\">${(DATA.trash||[]).length} ملف</div></a>"
-                    "<a class=\"sec\" href=\"#/log\"><div class=\"ic\">📜</div><b>سجل العمليات</b><span>مين عمل شو وإمتى</span></a></div>\n <h2>طريقة الاستخدام</h2>", html, "home admin")
+                    "<a class=\"sec\" href=\"#/log\"><div class=\"ic\">📜</div><b>سجل العمليات</b><span>مين عمل شو وإمتى</span></a><a class=\"sec\" href=\"/__logout\"><div class=\"ic\">🚪</div><b>تسجيل الخروج</b><span>${h(DATA.email||'')}</span></a></div>\n <h2>طريقة الاستخدام</h2>", html, "home admin")
     html = sub_once(r"else if\(s==='help'\)h=help\(\);",
                     "else if(s==='help')h=help();\n else if(s==='trash')h=trashView();\n else if(s==='log'){h=crumb([['سجل العمليات']])+'<h2>سجل العمليات</h2><div id=\"logv\" class=\"empty\">جاري التحميل…</div>';setTimeout(logView,0)}", html, "routes")
     html = sub_once(r"function closeV\(\)",

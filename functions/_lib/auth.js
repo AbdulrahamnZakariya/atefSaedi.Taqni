@@ -45,6 +45,39 @@ export function roleOf(email, env) {
   return 'viewer'; // زائر مسجّل للأسئلة فقط (VIEWER_EMAILS)
 }
 
+/* ---------- تسجيل دخول الموقع: إيميل + كلمة سر (بدون خدمات خارجية) ----------
+   ACCOUNTS = "email1:password1,email2:password2" (سر بمتغيرات Cloudflare) */
+export function accounts(env) {
+  const m = new Map();
+  for (const part of String(env.ACCOUNTS || '').split(',')) {
+    const i = part.indexOf(':');
+    if (i > 0) m.set(part.slice(0, i).trim().toLowerCase(), part.slice(i + 1).trim());
+  }
+  return m;
+}
+export const SESSION_TTL = 30 * 24 * 3600;
+export async function checkLogin(email, password, env) {
+  const e = String(email || '').trim().toLowerCase();
+  const p = accounts(env).get(e);
+  const allowed = [...list(env.ALLOWED_EMAILS), ...list(env.VIEWER_EMAILS)];
+  const ok = await safeEqual(String(password || ''), p || '\u0000no-account');
+  return ok && !!p && p.length >= 10 && allowed.includes(e) ? e : null;
+}
+export async function sessionToken(email, env) {
+  const body = `${b64urlText(email)}.${now() + SESSION_TTL}`;
+  return `${body}.${await hmac(env.SIGNING_KEY, 'sess|' + body)}`;
+}
+async function sessionUser(request, env) {
+  const t = cookie(request, 'ks');
+  if (!t || !env.SIGNING_KEY) return null;
+  const [e, exp, sig] = t.split('.');
+  if (!e || !exp || !sig || Number(exp) < now()) return null;
+  if (!(await safeEqual(sig, await hmac(env.SIGNING_KEY, `sess|${e}.${exp}`)))) return null;
+  const email = textFromB64url(e);
+  return accounts(env).has(email) ? email : null; // حذف الحساب بيلغي جلسته فوراً
+}
+export const sessionCookie = (v, maxAge) => `ks=${encodeURIComponent(v)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
+
 export async function authenticate(request, env) {
   const allowed = [...list(env.ALLOWED_EMAILS), ...list(env.VIEWER_EMAILS)];
   if (!allowed.length) return null; // بدون قائمة إيميلات: ولا حدا بيدخل
@@ -54,6 +87,8 @@ export async function authenticate(request, env) {
     const e = String(env.DEV_AUTH_EMAIL).toLowerCase().trim();
     return allowed.includes(e) ? { email: e, role: roleOf(e, env) } : null;
   }
+  const se = await sessionUser(request, env);
+  if (se) return allowed.includes(se) ? { email: se, role: roleOf(se, env) } : null;
   if (!env.ACCESS_TEAM_DOMAIN || !env.ACCESS_AUD) return null;
   const token = request.headers.get('Cf-Access-Jwt-Assertion') || cookie(request, 'CF_Authorization');
   if (!token) return null;
