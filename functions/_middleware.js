@@ -1,5 +1,5 @@
 // كل طلب للموقع (الصفحة، الملفات، الـ API) بيمر من هون. بدون دخول صحيح: ولا إشي.
-import { authenticate, checkLogin, sessionToken, sessionCookie, SESSION_TTL } from './_lib/auth.js';
+import { authenticate, checkLogin, sessionToken, sessionCookie, SESSION_TTL, authFile } from './_lib/auth.js';
 import { hmac } from './_lib/util.js';
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -57,6 +57,11 @@ export async function onRequest(ctx) {
     if (!email || !env.SIGNING_KEY) { failed(ip); await new Promise(r => setTimeout(r, 600)); return harden(html(LOGIN('الإيميل أو كلمة السر غلط.'), 401), false); }
     FAILS.delete(ip);
     return harden(new Response(null, { status: 303, headers: { Location: '/', 'Set-Cookie': sessionCookie(await sessionToken(email, env), SESSION_TTL) } }), false);
+  }
+  // فحص صحة الإعدادات بدون أي بيانات: هل الخادم بيوصل للمستودع؟ هل مفتاح الذكاء موجود؟
+  if (url.pathname === '/__health') {
+    const a = await authFile(env).catch(() => null);
+    return harden(new Response(JSON.stringify({ storage: !!(a && a.accounts && Object.keys(a.accounts).length), ai: !!env.GEMINI_API_KEY, signing: !!env.SIGNING_KEY }), { headers: { 'Content-Type': 'application/json' } }), true);
   }
   if (url.pathname === '/__logout') {
     return harden(new Response(null, { status: 303, headers: { Location: '/', 'Set-Cookie': sessionCookie('', 0) } }), false);
