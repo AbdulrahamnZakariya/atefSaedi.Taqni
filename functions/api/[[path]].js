@@ -110,6 +110,7 @@ export async function onRequest(ctx) {
     }
 
     if (route === 'unlock' && method === 'POST') {
+      if (user.role === 'viewer') return json({ error: 'forbidden' }, 403);
       const k = user.email + '|' + (request.headers.get('CF-Connecting-IP') || '');
       if (tooMany(k)) return json({ error: 'slow down' }, 429);
       const body = await readBody(request);
@@ -198,6 +199,7 @@ export async function onRequest(ctx) {
 
     /* سجل العمليات: مين، شو، إمتى */
     if (route === 'audit' && method === 'GET') {
+      if (user.role === 'viewer') return json({ ops: [] });
       const [log, unlocked] = await Promise.all([getJsonFile(env, LOG_PATH, { ops: [] }), isUnlocked(request, env, user)]);
       const hide = c => !unlocked && [c.before, c.after].some(x => x && isPrivFile(x));
       return json({ ops: (log.ops || []).slice().reverse().slice(0, 300).map(o => ({

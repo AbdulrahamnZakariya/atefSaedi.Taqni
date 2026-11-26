@@ -27,7 +27,7 @@
       const byId = (a, b) => { const m = new Map(a.map(x => [x.id, x])); (b || []).forEach(x => m.set(x.id, x)); return [...m.values()]; };
       S.indexes = byId(S.indexes, loc.indexes); S.tasks = byId(S.tasks, loc.tasks);
     }
-    S.ready = true; updateMode();
+    S.ready = true; updateMode(); if (root) defaultSug();
   }
   async function persist(kind) {
     const payload = { lists: { updated: today(), lists: S.lists }, indexes: { updated: today(), indexes: S.indexes }, tasks: { updated: today(), tasks: S.tasks } };
@@ -50,7 +50,7 @@
     return new Promise(res => { pinAsk = res; bot('لتشغيل المساعد الذكي والحفظ المشترك اكتب <b>رمز المزامنة</b> (مرة وحدة بس على هالجهاز):', [], true); }); }
 
   /* ---------- البحث ---------- */
-  const STOP = new Set(['ملف', 'الملف', 'ملفات', 'لي', 'الي', 'اللي', 'تبع', 'تبعت', 'حق', 'عن', 'في', 'من', 'على', 'عل', 'يا', 'لو', 'سمحت', 'بدي', 'ابي', 'ابغي', 'ابغا', 'اريد', 'اعرض', 'اعرضلي', 'افتح', 'افتحلي', 'جيب', 'جيبلي', 'جبلي', 'وريني', 'ورجيني', 'هات', 'هاتلي', 'عطني', 'اعطني', 'ابحث', 'دور', 'دورلي', 'شوف', 'مباشره', 'هلا', 'الله', 'لو', 'سمحتي', 'ممكن', 'الـ', 'و', 'ال', 'هو', 'هي', 'هذا', 'هاد', 'هذي', 'كل']);
+  const STOP = new Set(['وين', 'شو', 'ايش', 'وش', 'بدك', 'مشروع', 'ملف', 'الملف', 'ملفات', 'لي', 'الي', 'اللي', 'تبع', 'تبعت', 'حق', 'عن', 'في', 'من', 'على', 'عل', 'يا', 'لو', 'سمحت', 'بدي', 'ابي', 'ابغي', 'ابغا', 'اريد', 'اعرض', 'اعرضلي', 'افتح', 'افتحلي', 'جيب', 'جيبلي', 'جبلي', 'وريني', 'ورجيني', 'هات', 'هاتلي', 'عطني', 'اعطني', 'ابحث', 'دور', 'دورلي', 'شوف', 'مباشره', 'هلا', 'الله', 'لو', 'سمحتي', 'ممكن', 'الـ', 'و', 'ال', 'هو', 'هي', 'هذا', 'هاد', 'هذي', 'كل']);
   const SYN = { 'رخصه': ['رخص', 'اعتماد', 'رخصه'], 'ترخيص': ['رخص', 'اعتماد'], 'صك': ['صك'], 'صكوك': ['صك'], 'عقد': ['عقد'], 'عقود': ['عقد'], 'صور': ['صوره', 'jpeg', 'jpg'], 'صوره': ['صوره', 'jpeg', 'jpg'], 'فيديو': ['فيديو', 'mp4', 'mov'], 'مخططات': ['مخطط'], 'مالي': ['مالي', 'جدوي'], 'جدوي': ['جدوي'], 'شراكه': ['شراكه', 'مشاركه', 'تفاهم'], 'هويه': ['هويه', 'قوالب'] };
   function variants(t) { const v = new Set([t]); for (const p of ['بال', 'وال', 'لل', 'ال', 'ل', 'ب', 'و']) if (t.startsWith(p) && t.length - p.length >= 3) v.add(t.slice(p.length)); (SYN[t] || []).forEach(x => v.add(x)); [...v].forEach(x => (SYN[x] || []).forEach(y => v.add(y))); return [...v]; }
   const tokens = q => N(q).split(/\s+/).filter(w => w && !STOP.has(w));
@@ -96,7 +96,10 @@
     root.querySelector('form').onsubmit = e => { e.preventDefault(); const v = input.value.trim(); if (!v) return; input.value = ''; send(v); };
     root.addEventListener('click', onAction);
     setupVoice();
-    setSug(SESSION() ? ['رتّب ملفات مشروع…', 'وين صك…؟', 'شو الملفات المعلّقة؟', 'سلة المحذوفات', 'تراجع', 'شو الجديد؟', 'شو بتقدر تعمل؟'] : ['شو الجديد؟', 'اعرض صك السقيا', 'اعمل فهرس للجصة', 'قوائمي', 'المهام', 'شو بتقدر تعمل؟']);
+    defaultSug();
+  }
+  function defaultSug() {
+    setSug(SESSION() && role() === 'viewer' ? ['وين صك…؟', 'شو الجديد؟', 'شو بتقدر تعمل؟'] : SESSION() ? ['رتّب ملفات مشروع…', 'وين صك…؟', 'شو الملفات المعلّقة؟', 'سلة المحذوفات', 'تراجع', 'شو الجديد؟', 'شو بتقدر تعمل؟'] : ['شو الجديد؟', 'اعرض صك السقيا', 'اعمل فهرس للجصة', 'قوائمي', 'المهام', 'شو بتقدر تعمل؟']);
   }
   function toggle(on) { root.classList.toggle('on', on); if (on) { if (!log.children.length) greet(); setTimeout(() => input.focus(), 50); } }
   function setSug(a) { root.querySelector('.kc-sug').innerHTML = a.map(x => /…/.test(x) ? `<button data-fill="${esc(x.replace(/…/, '').replace(/؟$/, ''))}">${esc(x)}</button>` : `<button data-say="${esc(x)}">${esc(x)}</button>`).join(''); }
@@ -108,7 +111,8 @@
     const isImg = f => /\.(jpe?g|png|webp|gif)$/i.test(f.path || '');
     return `<div class="kc-files">${fs.map(f => `<div class="kc-f"><button class="kc-open" data-open="${f.id}">${isImg(f) ? `<img class="kc-th" src="${encP(f.path)}" loading="lazy" alt="">` : `<span class="kc-t">${typeLabel(f)}</span>`}<span><b>${esc(f.title)}</b><small>${esc(where(f))} · ${f.date ? esc(f.date) + ' · ' : ''}${f.id}${f.status && f.status !== 'مصنّف' ? ` · <em>${esc(f.status)}</em>` : ''}</small></span></button>
       <div class="kc-acts"><a href="${encP(f.path)}" target="_blank" rel="noopener" class="kc-go">فتح</a>${f.pdf ? `<a href="${encP(f.pdf)}" target="_blank" rel="noopener">PDF</a>` : ''}${opts.list ? `<button data-unlist="${f.id}" data-list="${esc(opts.list)}">شيل من القائمة</button>` : `<button data-pick="${f.id}">أضف لقائمة</button>`}${opts.del && SESSION() ? `<button data-del="${f.id}">احذف هذا</button>` : ''}</div></div>`).join('')}</div>`; }
-  function greet() { bot(SESSION() && role() !== 'viewer' ? `أهلاً ${role() === 'owner' ? 'أبو أنفال' : ''} 👋 أنا مساعد الأرشيف.<br>بلاقيلك أي ملف، وبرتّب وبنقل وبسمّي وبحذف للسلة. أي تعديل بعرضلك خطته أول، وما بيتنفّذ إلا لما تضغط «تأكيد».<br>🎙️ وبتقدر تحكي بصوتك.` : `أهلاً أبو أنفال 👋 أنا مساعد أرشيف كيانات.<br>اطلب أي ملف وبفتحه لك مباشرة، أو قلّي أضيفه لقائمة، أو أعمل فهرس لمشروع.<br>🎙️ وبتقدر تضغط المايك وتحكي الأمر بصوتك.`); }
+  function greet() { if (SESSION() && role() === 'viewer') return bot('أهلاً 👋 أنا مساعد أرشيف كيانات.<br>اسألني عن أي ملف وبلاقيه وبفتحه لك. (حسابك للاطلاع بس، بدون تعديل.)');
+    bot(SESSION() && role() !== 'viewer' ? `أهلاً ${role() === 'owner' ? 'أبو أنفال' : ''} 👋 أنا مساعد الأرشيف.<br>بلاقيلك أي ملف، وبرتّب وبنقل وبسمّي وبحذف للسلة. أي تعديل بعرضلك خطته أول، وما بيتنفّذ إلا لما تضغط «تأكيد».<br>🎙️ وبتقدر تحكي بصوتك.` : `أهلاً أبو أنفال 👋 أنا مساعد أرشيف كيانات.<br>اطلب أي ملف وبفتحه لك مباشرة، أو قلّي أضيفه لقائمة، أو أعمل فهرس لمشروع.<br>🎙️ وبتقدر تضغط المايك وتحكي الأمر بصوتك.`); }
   function help() { return bot(`<b>شو بقدر أعمل:</b><ul>
     <li><b>أعرض ملف:</b> «اعرض صك السقيا»، «جيبلي المخطط النهائي للفلل»، «افتح f12»</li>
     <li><b>أضيف لقائمة:</b> «أضف دراسة جدوى الجصة لقائمة المستثمرين»</li>
@@ -196,7 +200,8 @@
   function openFile(q) {
     const hits = search(q, 8);
     if (!hits.length) return bot(`ما لقيت ملف بهالوصف. جرّب كلمة ثانية (اسم المشروع، نوع الملف، أو رقمه مثل f12).${isUnlocked() ? '' : '<br><small class="kc-mute">إذا الملف بالقسم الخاص، افتح القفل من الرئيسية أولاً.</small>'}`);
-    const top = hits[0], second = hits[1];
+    const top = hits[0], second = hits[1], all = tokens(q).length;
+    if (top._h < all) return bot('ما لقيته بالضبط. أقرب إشي لقيته:', hits.slice(0, 5));
     const clear = hits.length === 1 || (top._h > second._h) || (top._s >= second._s + 2);
     if (clear) { bot(`فتحتلك: <b>${esc(top.title)}</b>`, [top]); if (typeof openV === 'function') openV(top.id); return; }
     bot(`لقيت ${hits.length} ملفات قريبة، أيّهم بدك؟`, hits);
@@ -379,7 +384,7 @@
   function trashShow() {
     const t = D().trash || [];
     if (!t.length) { bot('سلة المحذوفات فاضية.'); return { count: 0 }; }
-    bot(`<b>سلة المحذوفات</b> <small class="kc-mute">(بتنحذف لحالها بعد 30 يوم)</small><div class="kc-files">${t.map(f => `<div class="kc-f"><div class="kc-open"><span class="kc-t">${typeLabel(f)}</span><span><b>${esc(f.title)}</b><small>${f.id} · باقي ${f.daysLeft} يوم</small></span></div><div class="kc-acts"><button data-restore="${f.id}">رجّعه</button>${role() === 'owner' ? `<button data-purge="${f.id}">حذف نهائي</button>` : ''}</div></div>`).join('')}</div>`);
+    bot(`<b>سلة المحذوفات</b> <small class="kc-mute">(بتنحذف لحالها بعد 30 يوم)</small><div class="kc-files">${t.map(f => `<div class="kc-f"><div class="kc-open"><span class="kc-t">${typeLabel(f)}</span><span><b>${esc(f.title)}</b><small>${f.id} · باقي ${f.daysLeft} يوم</small></span></div><div class="kc-acts">${role() !== 'viewer' ? `<button data-restore="${f.id}">رجّعه</button>` : ''}${role() === 'owner' ? `<button data-purge="${f.id}">حذف نهائي</button>` : ''}</div></div>`).join('')}</div>`);
     return t.map(f => ({ id: f.id, title: f.title, days_left: f.daysLeft }));
   }
   // أوامر بدون الذكاء: بتشتغل حتى لو Gemini واقف

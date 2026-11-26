@@ -29,7 +29,7 @@ jobs:
       - name: بناء الرسالة وإرسالها
         env:
           MODE: ${{ github.event_name == 'schedule' && 'daily' || github.event_name == 'push' && 'changes' || inputs.mode }}
-          SITE_URL: ${{ vars.SITE_URL || 'https://abdulrahamnzakariya.github.io/atefSaedi.Taqni/' }}
+          SITE_URL: ${{ vars.SITE_URL || 'https://kayanat-archive.pages.dev/' }}
           WA_PHONE: ${{ secrets.WA_PHONE }}
           CALLMEBOT_APIKEY: ${{ secrets.CALLMEBOT_APIKEY }}
           WA_TOKEN: ${{ secrets.WA_TOKEN }}

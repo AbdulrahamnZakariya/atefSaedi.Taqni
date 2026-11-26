@@ -19,7 +19,7 @@ function harden(res, isApi) {
   const r = new Response(res.body, res);
   r.headers.set('X-Content-Type-Options', 'nosniff');
   r.headers.set('X-Frame-Options', 'SAMEORIGIN');
-  r.headers.set('Referrer-Policy', 'no-referrer');
+  r.headers.set('Referrer-Policy', 'same-origin'); // no-referrer بيخلي المتصفح يبعت Origin: null مع الفورم
   r.headers.set('X-Robots-Tag', 'noindex, nofollow');
   r.headers.set('Strict-Transport-Security', 'max-age=31536000');
   r.headers.set('Permissions-Policy', 'camera=(), geolocation=(), microphone=(self)');
@@ -33,13 +33,20 @@ const FAILS = new Map();
 const blocked = ip => { const r = FAILS.get(ip); if (!r) return false; if (Date.now() - r.t > 15 * 60e3) { FAILS.delete(ip); return false; } return r.n >= 8; };
 const failed = ip => { const r = FAILS.get(ip) || { n: 0, t: Date.now() }; r.n++; FAILS.set(ip, r); };
 
+// الطلب جاي من نفس الموقع؟ (Origin، وإلا Sec-Fetch-Site للمتصفحات اللي بتبعت Origin: null)
+function sameSite(request, url) {
+  const o = request.headers.get('Origin');
+  if (o && o !== 'null') return o === url.origin;
+  return request.headers.get('Sec-Fetch-Site') === 'same-origin';
+}
+
 export async function onRequest(ctx) {
   const { request, env } = ctx;
   const url = new URL(request.url);
   const isApi = url.pathname.startsWith('/api/');
 
   if (url.pathname === '/__login' && request.method === 'POST') {
-    if (request.headers.get('Origin') !== url.origin) return harden(new Response('forbidden', { status: 403 }), false);
+    if (!sameSite(request, url)) return harden(new Response('forbidden', { status: 403 }), false);
     const ip = request.headers.get('CF-Connecting-IP') || 'local';
     if (blocked(ip)) return harden(html(LOGIN('محاولات كثيرة. استنى ربع ساعة.'), 429), false);
     const f = await request.formData().catch(() => null);
@@ -60,8 +67,7 @@ export async function onRequest(ctx) {
   }
   // أي طلب يغيّر إشي لازم يجي من نفس الموقع (حماية CSRF)
   if (request.method !== 'GET' && request.method !== 'HEAD') {
-    const origin = request.headers.get('Origin');
-    if (!origin || origin !== url.origin) return harden(new Response('forbidden', { status: 403 }), isApi);
+    if (!sameSite(request, url)) return harden(new Response('forbidden', { status: 403 }), isApi);
   }
   ctx.data.user = user;
   return harden(await ctx.next(), isApi);

@@ -81,3 +81,6 @@
 #kc .kc-th{flex:none;width:44px;height:44px;border-radius:8px;object-fit:cover;background:#e7e1d4}
 #kc .kc-open em{font-style:normal;color:#a63d32;font-weight:600}
 #kc .kc-acts .kc-go{background:var(--kc-ink);border-color:var(--kc-ink);color:#fff}
+
+/* الجوال: زر المساعد ما بيغطي المعاينة */
+body:has(#viewer.on) #kc .kc-fab{display:none}

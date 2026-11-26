@@ -55,7 +55,7 @@ export function accounts(env) {
   }
   return m;
 }
-export const SESSION_TTL = 30 * 24 * 3600;
+export const SESSION_TTL = 14 * 24 * 3600;
 export async function checkLogin(email, password, env) {
   const e = String(email || '').trim().toLowerCase();
   const p = accounts(env).get(e);
@@ -63,18 +63,21 @@ export async function checkLogin(email, password, env) {
   const ok = await safeEqual(String(password || ''), p || '\u0000no-account');
   return ok && !!p && p.length >= 10 && allowed.includes(e) ? e : null;
 }
+// التوقيع مربوط بكلمة سر الحساب: تغيير كلمة السر بيلغي كل الجلسات القديمة فوراً
+const pwFp = (email, env) => hmac(env.SIGNING_KEY, 'pw|' + (accounts(env).get(email) || ''));
 export async function sessionToken(email, env) {
   const body = `${b64urlText(email)}.${now() + SESSION_TTL}`;
-  return `${body}.${await hmac(env.SIGNING_KEY, 'sess|' + body)}`;
+  return `${body}.${await hmac(env.SIGNING_KEY, 'sess|' + body + '|' + (await pwFp(email, env)))}`;
 }
 async function sessionUser(request, env) {
   const t = cookie(request, 'ks');
   if (!t || !env.SIGNING_KEY) return null;
   const [e, exp, sig] = t.split('.');
   if (!e || !exp || !sig || Number(exp) < now()) return null;
-  if (!(await safeEqual(sig, await hmac(env.SIGNING_KEY, `sess|${e}.${exp}`)))) return null;
   const email = textFromB64url(e);
-  return accounts(env).has(email) ? email : null; // حذف الحساب بيلغي جلسته فوراً
+  if (!accounts(env).has(email)) return null; // حذف الحساب بيلغي جلسته فوراً
+  if (!(await safeEqual(sig, await hmac(env.SIGNING_KEY, `sess|${e}.${exp}|${await pwFp(email, env)}`)))) return null;
+  return email;
 }
 export const sessionCookie = (v, maxAge) => `ks=${encodeURIComponent(v)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
 
